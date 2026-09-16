@@ -84,9 +84,23 @@ export const inAppBrowser = (() => {
   return /FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|TikTok|musical_ly|Snapchat|; wv\)/i.test(navigator.userAgent)
 })()
 
+/** Is Google switched on in the Supabase project? (Asked first, so nobody lands on a raw error page.) */
+async function googleEnabled() {
+  try {
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/settings`, {
+      headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+    })
+    const settings = await res.json()
+    return Boolean(settings?.external?.google)
+  } catch {
+    return true // can't tell — let Google's page speak for itself
+  }
+}
+
 /** Sends the person to Google, which returns them here signed in. */
 export async function signInWithGoogle() {
   if (!cloudEnabled) throw new AuthError('About You isn’t connected to a server yet')
+  if (!(await googleEnabled())) throw new AuthError('Google sign-in isn’t available yet — please use email for now.')
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: `${window.location.origin}${window.location.pathname}`, queryParams: { prompt: 'select_account' } },
