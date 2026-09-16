@@ -65,7 +65,13 @@ export async function sendSignInCode(email) {
     email: clean,
     options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}${window.location.pathname}` },
   })
-  if (error) throw new AuthError(error.message.includes('rate limit') ? 'Too many emails for now — try again in a few minutes' : error.message)
+  if (error) {
+    const m = error.message.toLowerCase()
+    if (m.includes('rate limit')) throw new AuthError('Too many emails for now — try again in a few minutes')
+    // Supabase's wording when its mail server (SMTP) turns the message away.
+    if (m.includes('error sending')) throw new AuthError('The sign-in email couldn’t be sent right now. Please try again in a little while.')
+    throw new AuthError(error.message)
+  }
   return clean
 }
 
