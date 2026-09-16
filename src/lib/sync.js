@@ -18,6 +18,8 @@ let pushing = Promise.resolve()
 let snapshot = new Map() // entry id → JSON of what the server has
 let settingsSnapshot = ''
 let pulling = false
+let retryTimer = null
+const RETRY_MS = 30_000
 
 const state = { phase: 'off', error: null, at: null, pending: 0 }
 const listeners = new Set()
@@ -30,6 +32,43 @@ export const syncState = () => state
 export const useSync = () => useSyncExternalStore((fn) => (listeners.add(fn), () => listeners.delete(fn)), syncState)
 
 const entryKey = (e) => JSON.stringify(e)
+
+// How much is in an entry — used to break ties so an empty copy never replaces a written one.
+const weight = (e) =>
+  (e.moments ?? []).reduce((n, m) => n + (m.body?.trim().length ?? 0), 0) +
+  (e.media?.length ?? 0) * 1000 +
+  (e.track ? 1000 : 0) +
+  (e.mood ? 1 : 0)
+
+const time = (iso) => (iso ? Date.parse(iso) || 0 : 0)
+
+/** Union of both sides by entry id (falling back to date), keeping the better copy of each day. */
+export function mergeEntries(local, remote) {
+  const byDate = new Map()
+  const fromServer = new Set()
+  for (const r of remote) {
+    byDate.set(r.date, r)
+    fromServer.add(r.id)
+  }
+  for (const l of local) {
+    const r = byDate.get(l.date)
+    if (!r) {
+      byDate.set(l.date, l) // only here: keep it, it will be uploaded
+      continue
+    }
+    // An empty server copy never replaces real writing. It can look "newer" only because it was
+    // uploaded moments after the writing happened (or its moments failed to save), and a sealed
+    // entry arrives without content while the Lockbin is locked.
+    const serverEmptyLocalWritten = weight(r) <= 1 && weight(l) > 1
+    const localNewer = time(l.updatedAt) > time(r.updatedAt)
+    if (serverEmptyLocalWritten || localNewer) {
+      // keep this browser's copy, under the server's id so the upload updates the same row
+      byDate.set(l.date, { ...l, id: r.id })
+      fromServer.delete(r.id)
+    }
+  }
+  return { entries: [...byDate.values()], fromServer }
+}
 const settingsKey = (s) => JSON.stringify([s.ownerName, s.dedication, s.handle, s.defaultVisibility])
 
 /** Signed in: pull everything, then keep pushing changes as they happen. */
@@ -42,32 +81,29 @@ export async function startSync(session) {
     pulling = true
     const [profile, remoteEntries] = await Promise.all([pullProfile(userId), pullMyEntries()])
 
-    const local = listEntries()
-    const localById = new Map(local.map((e) => [e.id, e]))
-    // A sealed entry sends no content while locked — keep what this browser already has.
-    const merged = remoteEntries.map((e) => (e.inLockbin && !e.moments.length && localById.get(e.id) ? localById.get(e.id) : e))
-
     const current = getSettings()
-    // Was anything in this browser written while signed into a different account?
+    // Was this browser's diary written while signed into a different account? Then it isn't ours to merge.
     const belongsToSomeoneElse = Boolean(current.syncedUserId) && current.syncedUserId !== userId
-    const nothingOnServer = merged.length === 0 && !profile.ownerName && !profile.handle
-    const localHasSomething = local.length > 0 || Boolean(current.ownerName)
+    const local = belongsToSomeoneElse ? [] : listEntries()
 
-    if (nothingOnServer && localHasSomething && !belongsToSomeoneElse) {
-      // First sign-in with a diary already written here: keep it and upload it below.
-      snapshot = new Map()
-      settingsSnapshot = ''
-      saveSettings({ syncedUserId: userId })
-      set({ phase: 'syncing', at: new Date() })
+    // Merge day by day. The server never silently overwrites writing that only exists here:
+    // whichever copy is newer — or has more in it — wins, and a local winner is pushed back up.
+    const { entries: merged, fromServer } = mergeEntries(local, remoteEntries)
+    replaceEntries(merged)
+    snapshot = new Map(merged.filter((e) => fromServer.has(e.id)).map((e) => [e.id, entryKey(e)]))
+
+    // Profile: the server's wins when it has one (so nobody introduces themselves twice);
+    // if the server's is still empty, this browser's name is sent up.
+    const serverHasProfile = Boolean(profile.ownerName || profile.handle)
+    if (serverHasProfile) {
+      saveSettings({ ...profile, syncedUserId: userId })
+      settingsSnapshot = settingsKey({ ...current, ...profile })
     } else {
-      replaceEntries(merged)
-      snapshot = new Map(merged.map((e) => [e.id, entryKey(e)]))
-      // The server's profile wins on a new device, so nobody is asked to introduce themselves twice.
-      const profilePatch = profile.ownerName || profile.handle ? profile : belongsToSomeoneElse ? { ownerName: '', dedication: '', handle: '' } : {}
-      saveSettings({ ...profilePatch, syncedUserId: userId })
-      settingsSnapshot = settingsKey({ ...current, ...profilePatch })
-      set({ phase: 'idle', at: new Date() })
+      if (belongsToSomeoneElse) saveSettings({ ownerName: '', dedication: '', handle: '' })
+      saveSettings({ syncedUserId: userId })
+      settingsSnapshot = '' // forces the local profile to be pushed
     }
+    set({ phase: 'syncing', at: new Date() })
   } catch (e) {
     set({ phase: 'error', error: e.message ?? 'Sync failed' })
   } finally {
@@ -80,6 +116,7 @@ export async function startSync(session) {
 }
 
 export function stopSync() {
+  clearTimeout(retryTimer)
   unsubscribe?.()
   unsubscribe = null
   userId = null
@@ -88,7 +125,7 @@ export function stopSync() {
   set({ phase: 'off', error: null, pending: 0 })
 }
 
-/** Uploads a diary that was written in this browser before signing in. */
+/** "Sync now": sends everything in this browser up again, whatever the last attempt thought. */
 export async function uploadLocalDiary() {
   if (!userId) return
   set({ phase: 'syncing' })
@@ -110,12 +147,18 @@ function queueChanges(force = false) {
   for (const id of snapshot.keys()) {
     if (!entries.some((e) => e.id === id)) jobs.push({ kind: 'delete', id })
   }
-  if (force || settingsKey(settings) !== settingsSnapshot) jobs.push({ kind: 'settings', settings })
+  // The profile goes first, so one stubborn entry can never keep your name off the server.
+  if (force || settingsKey(settings) !== settingsSnapshot) jobs.unshift({ kind: 'settings', settings })
 
-  if (!jobs.length) return pushing
+  if (!jobs.length) {
+    if (state.phase === 'syncing' && !state.pending) set({ phase: 'idle', at: new Date(), error: null })
+    return pushing
+  }
+  clearTimeout(retryTimer)
   set({ pending: state.pending + jobs.length, phase: 'syncing' })
 
   pushing = pushing.then(async () => {
+    let firstError = null
     for (const job of jobs) {
       try {
         if (job.kind === 'entry') {
@@ -128,13 +171,18 @@ function queueChanges(force = false) {
           await pushProfile(job.settings, userId)
           settingsSnapshot = settingsKey(job.settings)
         }
-        set({ pending: Math.max(0, state.pending - 1) })
       } catch (e) {
-        set({ phase: 'error', error: e.message ?? 'Couldn’t save to the server', pending: 0 })
-        return
+        firstError ??= e.message ?? 'Couldn’t save to the server' // keep going: other days may still save
       }
+      set({ pending: Math.max(0, state.pending - 1) })
     }
-    set({ phase: 'idle', at: new Date(), error: null, pending: 0 })
+    if (firstError) {
+      set({ phase: 'error', error: firstError, pending: 0 })
+      // Nothing was lost locally; try again on its own in a little while.
+      retryTimer = setTimeout(() => queueChanges(), RETRY_MS)
+    } else {
+      set({ phase: 'idle', at: new Date(), error: null, pending: 0 })
+    }
   })
   return pushing
 }

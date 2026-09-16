@@ -431,39 +431,24 @@ function SignedIn({ session }) {
       </p>
       <Status tone={sync.phase === 'error' ? 'error' : undefined}>{STATUS[sync.phase]}</Status>
 
-      {sync.phase === 'error' && (
+      <div className="flex flex-wrap gap-3">
+        {/* Always available: sends everything in this browser up again. */}
         <button
           type="button"
-          disabled={uploading}
+          disabled={uploading || sync.phase === 'syncing'}
           onClick={async () => {
             setUploading(true)
             await uploadLocalDiary()
             setUploading(false)
           }}
-          className="chip chip-solid"
+          className={`chip ${sync.phase === 'error' ? 'chip-solid' : ''}`}
         >
-          {uploading ? 'Trying again…' : 'Try again'}
+          {uploading || sync.phase === 'syncing' ? 'Syncing…' : sync.phase === 'error' ? 'Try again' : 'Sync now'}
         </button>
-      )}
-
-      {sync.phase === 'local-only' && (
-        <button
-          type="button"
-          disabled={uploading}
-          onClick={async () => {
-            setUploading(true)
-            await uploadLocalDiary()
-            setUploading(false)
-          }}
-          className="chip chip-solid"
-        >
-          {uploading ? 'Uploading…' : 'Upload this browser’s diary'}
+        <button type="button" onClick={signOut} className="chip">
+          Sign out
         </button>
-      )}
-
-      <button type="button" onClick={signOut} className="chip">
-        Sign out
-      </button>
+      </div>
     </div>
   )
 }
