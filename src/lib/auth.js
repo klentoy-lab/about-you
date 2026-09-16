@@ -35,16 +35,32 @@ export function useSession() {
 
 export const currentUserId = () => cached?.user?.id ?? null
 
-/** Emails a sign-in link back to this exact page. */
-export async function sendSignInLink(email) {
+/**
+ * Emails a sign-in code (and a link).
+ *
+ * The code matters: mail apps open links in their own in-app browser, which doesn't hold the
+ * check this browser stored when asking — so a tapped link can land signed out. A typed code
+ * signs in whichever browser you're actually using.
+ */
+export async function sendSignInCode(email) {
   if (!cloudEnabled) throw new AuthError('About You isn’t connected to a server yet')
-  const clean = email.trim()
+  const clean = email.trim().toLowerCase()
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean)) throw new AuthError('That doesn’t look like an email address')
   const { error } = await supabase.auth.signInWithOtp({
     email: clean,
-    options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}` },
+    options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}${window.location.pathname}` },
   })
-  if (error) throw new AuthError(error.message)
+  if (error) throw new AuthError(error.message.includes('rate limit') ? 'Too many emails for now — try again in a few minutes' : error.message)
+  return clean
+}
+
+/** Finishes sign-in with the six-digit code from that email. */
+export async function verifySignInCode(email, code) {
+  if (!cloudEnabled) throw new AuthError('About You isn’t connected to a server yet')
+  const token = code.replace(/\D/g, '')
+  if (token.length < 6) throw new AuthError('The code is six digits')
+  const { error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token, type: 'email' })
+  if (error) throw new AuthError(error.message.includes('expired') ? 'That code has expired — send a new one' : 'That code didn’t work')
 }
 
 export async function signOut() {

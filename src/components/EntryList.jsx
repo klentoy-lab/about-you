@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import MediaGallery from './MediaGallery.jsx'
 import { SongLine } from './SongCard.jsx'
 import MoodSpine from './MoodSpine.jsx'
@@ -80,7 +81,7 @@ function DateMark({ date, href, size = 'text-[40px]' }) {
  * Full entry as a soft panel in its own mood theme: surface, glows, accent and the gradient spine.
  * Sealed entries keep the theme and date but show only an ink block.
  */
-export function EntryFull({ entry, href, sealed = false, unlockHref, showVisibility = false }) {
+export function EntryFull({ entry, href, sealed = false, unlockHref, showVisibility = false, onDelete }) {
   const mood = entry.mood ?? null
   return (
     <article
@@ -91,7 +92,19 @@ export function EntryFull({ entry, href, sealed = false, unlockHref, showVisibil
       <MoodSpine mood={mood} className="absolute inset-y-0 left-0 w-[6px]" />
 
       <div className="relative grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-10">
-        <DateMark date={entry.date} href={href} />
+        <div>
+          <DateMark date={entry.date} href={href} />
+          {(href || onDelete) && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {href && (
+                <a href={href} className="chip min-h-8 px-3">
+                  Edit
+                </a>
+              )}
+              {onDelete && <DeleteEntryButton date={entry.date} onDelete={onDelete} />}
+            </div>
+          )}
+        </div>
 
         {sealed ? (
           <div className="max-w-[42.5rem]">
@@ -128,6 +141,21 @@ export function EntryFull({ entry, href, sealed = false, unlockHref, showVisibil
         )}
       </div>
     </article>
+  )
+}
+
+/** Deleting a day asks once, on the button itself. */
+function DeleteEntryButton({ date, onDelete }) {
+  const [armed, setArmed] = useState(false)
+  return (
+    <button
+      type="button"
+      onClick={() => (armed ? onDelete(date) : setArmed(true))}
+      onBlur={() => setArmed(false)}
+      className={`chip min-h-8 px-3 ${armed ? 'chip-solid' : ''}`}
+    >
+      {armed ? 'Delete — sure?' : 'Delete'}
+    </button>
   )
 }
 

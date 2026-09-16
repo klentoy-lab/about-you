@@ -166,6 +166,14 @@ export function saveEntry(entry) {
   return saved
 }
 
+/** Deletes one day. Syncs as a deletion on the server too, when signed in. */
+export function deleteEntry(date) {
+  const db = read()
+  if (!db.entries[date]) return
+  delete db.entries[date]
+  write(db)
+}
+
 /** Deletes every entry in this browser. Settings, follows and the passcode stay. */
 export function clearEntries() {
   const db = read()

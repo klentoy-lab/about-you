@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { DedicationGutter, EntryFull, MonthGroups } from '../components/EntryList.jsx'
-import { dedicationOf, getSettings, listEntries } from '../lib/store.js'
+import { dedicationOf, deleteEntry, getSettings, listEntries } from '../lib/store.js'
+import { deleteFile } from '../lib/mediaStore.js'
 import { useLockbin } from '../lib/lockbin.js'
 import { useStoreVersion } from '../lib/useStore.js'
 import { toDateKey } from '../lib/date.js'
@@ -11,6 +12,13 @@ export default function Timeline() {
   const unlocked = useLockbin()
   const entries = useMemo(() => listEntries(), [v])
   const dedication = dedicationOf(getSettings())
+
+  // Deleting a day takes its photos and video with it.
+  const removeDay = async (date) => {
+    const entry = entries.find((e) => e.date === date)
+    await Promise.all((entry?.media ?? []).map((m) => deleteFile(m.id).catch(() => {})))
+    deleteEntry(date)
+  }
 
   return (
     <main>
@@ -45,6 +53,7 @@ export default function Timeline() {
                   sealed={e.inLockbin && !unlocked}
                   unlockHref="#/lockbin"
                   showVisibility
+                  onDelete={removeDay}
                 />
               )}
             />

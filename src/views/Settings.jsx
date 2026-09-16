@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { takenHandles } from '../lib/diaries.js'
-import { AuthError, sendSignInLink, signOut, useSession } from '../lib/auth.js'
+import { AuthError, sendSignInCode, signOut, useSession, verifySignInCode } from '../lib/auth.js'
 import { uploadLocalDiary, useSync } from '../lib/sync.js'
 import { clockLabel } from '../lib/date.js'
 import { cloudEnabled } from '../lib/supabase.js'
@@ -241,28 +241,17 @@ function AccountSettings() {
     setBusy(true)
     setError('')
     try {
-      await sendSignInLink(email)
-      setSent(email.trim())
+      setSent(await sendSignInCode(email))
     } catch (err) {
-      setError(err instanceof AuthError ? err.message : 'Couldn’t send the sign-in link')
+      setError(err instanceof AuthError ? err.message : 'Couldn’t send the sign-in email')
     }
     setBusy(false)
   }
 
   if (session) return <SignedIn session={session} />
 
-  if (sent) {
-    return (
-      <div className="space-y-4">
-        <p className="text-[15px] text-vanilla/80">
-          A sign-in link is on its way to <span className="text-vanilla">{sent}</span>. Open it on this device to finish.
-        </p>
-        <button type="button" onClick={() => setSent('')} className="chip">
-          Use a different email
-        </button>
-      </div>
-    )
-  }
+  if (sent) return <EnterCode email={sent} onBack={() => setSent('')} />
+
 
   return (
     <form onSubmit={submit} className="space-y-5">
@@ -279,8 +268,75 @@ function AccountSettings() {
       </label>
       <Status tone="error">{error}</Status>
       <button type="submit" disabled={busy || !email.trim()} className="chip chip-solid">
-        {busy ? 'Sending…' : 'Email me a sign-in link'}
+        {busy ? 'Sending…' : 'Email me a sign-in code'}
       </button>
+    </form>
+  )
+}
+
+/** Step two: the six-digit code, which signs in this browser wherever the email was opened. */
+function EnterCode({ email, onBack }) {
+  const [code, setCode] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [resent, setResent] = useState('')
+
+  const submit = async (e) => {
+    e.preventDefault()
+    setBusy(true)
+    setError('')
+    try {
+      await verifySignInCode(email, code)
+    } catch (err) {
+      setError(err instanceof AuthError ? err.message : 'That code didn’t work')
+    }
+    setBusy(false)
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-5">
+      <p className="text-[15px] leading-relaxed text-vanilla/80">
+        We emailed <span className="text-vanilla">{email}</span>. Type the six-digit code from that email here — that signs in
+        this browser. (Tapping the link works too, but only if it opens in this same browser.)
+      </p>
+      <label className="type-meta block text-vanilla/60">
+        Six-digit code
+        <input
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          autoFocus
+          maxLength={6}
+          value={code}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+          placeholder="000000"
+          className={`${smallField} max-w-[10rem] text-[24px] tracking-[0.4em]`}
+        />
+      </label>
+      <Status tone="error">{error}</Status>
+      <Status>{resent}</Status>
+      <div className="flex flex-wrap gap-3">
+        <button type="submit" disabled={busy || code.length < 6} className="chip chip-solid">
+          {busy ? 'Signing in…' : 'Sign in'}
+        </button>
+        <button
+          type="button"
+          onClick={async () => {
+            setResent('')
+            try {
+              await sendSignInCode(email)
+              setResent('Sent again — check your email.')
+            } catch (err) {
+              setError(err.message)
+            }
+          }}
+          className="chip"
+        >
+          Send another
+        </button>
+        <button type="button" onClick={onBack} className="chip">
+          Use a different email
+        </button>
+      </div>
     </form>
   )
 }
