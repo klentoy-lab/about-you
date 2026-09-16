@@ -6,13 +6,11 @@ import FollowButton from '../components/FollowButton.jsx'
 import { shortDate } from '../lib/date.js'
 import { moodGlow } from '../lib/moods.js'
 import { useMoodTheme } from '../lib/theme.js'
-import { getPublicDiary } from '../lib/diaries.js'
-import { useStoreVersion } from '../lib/useStore.js'
+import { usePublicDiary } from '../lib/diaries.js'
 
 /** A diary as anyone sees it: the dedication first, then every public entry. Read-only. */
 export default function PublicDiary({ handle }) {
-  const v = useStoreVersion()
-  const diary = useMemo(() => getPublicDiary(handle), [handle, v])
+  const { diary, loading } = usePublicDiary(handle)
   // The first screen is the masthead alone; the side dedication arrives once it has scrolled away.
   const header = useRef(null)
   const [pastMasthead, setPastMasthead] = useState(false)
@@ -26,6 +24,13 @@ export default function PublicDiary({ handle }) {
     return () => io.disconnect()
   }, [diary])
 
+  if (loading && !diary) {
+    return (
+      <main className="px-5 pt-20 md:px-12">
+        <p className="type-meta text-vanilla/50">Opening the diary…</p>
+      </main>
+    )
+  }
   if (!diary || diary.count === 0) return <NotFound />
 
   return (

@@ -9,15 +9,20 @@ import { useMoodTheme } from '../lib/theme.js'
 import { DedicationGutter, mediaSummary } from '../components/EntryList.jsx'
 import { NotFound } from './PublicDiary.jsx'
 import { formatTime, headline } from '../lib/date.js'
-import { getPublicDiary } from '../lib/diaries.js'
-import { useStoreVersion } from '../lib/useStore.js'
+import { usePublicDiary } from '../lib/diaries.js'
 
 /** One public entry, read-only, with neighbours for paging through the diary. */
 export default function PublicEntry({ handle, date }) {
-  const v = useStoreVersion()
-  const diary = useMemo(() => getPublicDiary(handle), [handle, v])
+  const { diary, loading } = usePublicDiary(handle)
   const index = diary ? diary.entries.findIndex((e) => e.date === date) : -1
   useMoodTheme(index >= 0 ? diary.entries[index].mood : null)
+  if (loading && !diary) {
+    return (
+      <main className="px-5 pt-20 md:px-12">
+        <p className="type-meta text-vanilla/50">Opening the page…</p>
+      </main>
+    )
+  }
   if (index < 0) return <NotFound />
 
   const entry = diary.entries[index]

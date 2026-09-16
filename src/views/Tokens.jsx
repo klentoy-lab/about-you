@@ -16,40 +16,10 @@ const COLOURS = [
 export default function Tokens() {
   return (
     <main className="px-5 pb-32 pt-12 md:px-12 md:pt-16">
-      <p className="type-meta text-vanilla/60">About You · design tokens v2</p>
-      <h1 className="type-display mt-4 max-w-[12ch] text-[clamp(48px,8vw,120px)] text-vanilla">The ground rules</h1>
-      <p className="type-serif mt-4 max-w-[36ch] text-[clamp(26px,3vw,40px)] text-vanilla/85">
-        Same palette, warmer voice. The v1 “Ember” design is archived in design-archive/ember-v1.
-      </p>
-
-      <Section title="What v2 adds" meta="Serif voice · glow · grain · pills">
-        <div className="grid gap-10 lg:grid-cols-3">
-          <div>
-            <p className="type-meta text-vanilla/60">Serif accent — Instrument Serif italic</p>
-            <p className="type-serif mt-3 text-[44px] text-vanilla">a note with the song</p>
-            <p className="mt-3 text-sm text-vanilla/70">Dedications, taglines, weekdays, excerpts. Never for body writing.</p>
-          </div>
-          <div>
-            <p className="type-meta text-vanilla/60">Actions — pill chips</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <span className="chip chip-solid">+ Moment</span>
-              <span className="chip">+ Photos & video</span>
-              <span className="chip">♪ Song of the day</span>
-            </div>
-            <p className="mt-3 text-sm text-vanilla/70">Solid for the main action in a group, outline for the rest.</p>
-          </div>
-          <div>
-            <p className="type-meta text-vanilla/60">Glow & raised surfaces</p>
-            <div className="relative mt-4 h-28 overflow-hidden bg-raised" style={{ borderRadius: 'var(--radius-card)' }}>
-              <span className="absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-60 blur-3xl" style={{ background: '#CA3F16' }} />
-            </div>
-            <p className="mt-3 text-sm text-vanilla/70">Each mood glows one colour behind covers, mastheads and Today.</p>
-          </div>
-        </div>
-      </Section>
+      <p className="type-meta text-vanilla/60">About You · design tokens</p>
 
       <Section title="Dedication masthead" meta="Mono label · display name fills the width">
-        <Masthead as="h2" name="Valerie" meta="360 entries · First entry 21 Sept 2025" />
+        <Masthead as="h2" name="Valerie" />
       </Section>
 
       <Section title="Colour" meta="Dark by default · mango means clickable">
@@ -81,53 +51,13 @@ export default function Tokens() {
         </ul>
       </Section>
 
-      <Section title="Type" meta="Three roles · two families">
-        <div className="space-y-14">
-          <Specimen role="Display" spec="Archivo 700 · uppercase · −0.03em · 0.92">
-            <p className="type-display text-[clamp(48px,7vw,96px)] text-vanilla">
-              Wednesday
-              <br />
-              15 Sept
-            </p>
-          </Specimen>
-          <Specimen role="Body" spec="Inter 400 · 18/1.65 · 68ch · vanilla 90%">
-            <p className="type-body">
-              The rain stopped just before six and the whole street smelled like hot stone. I walked the long way home so the
-              song could finish, and then played it again at the door.
-            </p>
-          </Specimen>
-          <Specimen role="Meta" spec="IBM Plex Mono 400 · 11px · uppercase · 0.22em">
-            <p className="type-meta flex flex-wrap gap-x-8 gap-y-2 text-vanilla">
-              <span>2:32 PM</span>
-              <span>Saved 2:32 PM</span>
-              <span>In the Lockbin</span>
-              <span className="text-mango">Private</span>
-            </p>
-          </Specimen>
-        </div>
-      </Section>
-
       <Section title="Surfaces" meta="No cards · no shadows · no uniform radius">
-        <div className="grid gap-12 lg:grid-cols-3">
+        <div className="grid gap-12 lg:grid-cols-2">
           <figure>
             <div className="bg-mist p-2" style={{ borderRadius: 'var(--radius-media)' }}>
               <div className="aspect-[4/3] w-full" style={{ background: 'var(--g03)', borderRadius: 'var(--radius-media)' }} />
             </div>
             <figcaption className="type-meta mt-3 text-vanilla/70">Media frame · mist · 2px max</figcaption>
-          </figure>
-
-          <figure>
-            <div className="flex aspect-[4/3] flex-col justify-end">
-              <div className="bg-mist px-5 pb-6 pt-4" style={{ borderRadius: 'var(--radius-tray) var(--radius-tray) 0 0' }}>
-                <div className="mx-auto mb-4 h-1 w-10 bg-fog" />
-                <p className="type-meta flex gap-6 text-ink">
-                  <span className="border-b-2 border-ink pb-1">Stickers</span>
-                  <span className="text-ink/60">GIFs</span>
-                  <span className="text-ink/60">Recent</span>
-                </p>
-              </div>
-            </div>
-            <figcaption className="type-meta mt-3 text-vanilla/70">Sticker tray · 20px top corners only</figcaption>
           </figure>
 
           <figure>
@@ -163,17 +93,5 @@ function Section({ title, meta, children }) {
       </div>
       {children}
     </section>
-  )
-}
-
-function Specimen({ role, spec, children }) {
-  return (
-    <div className="grid gap-4 md:grid-cols-[220px_1fr]">
-      <div>
-        <p className="type-meta text-vanilla">{role}</p>
-        <p className="type-meta mt-2 leading-relaxed text-vanilla/55">{spec}</p>
-      </div>
-      <div>{children}</div>
-    </div>
   )
 }

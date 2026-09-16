@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import FollowButton from '../components/FollowButton.jsx'
 import { EntryLine } from '../components/EntryList.jsx'
-import { followingFeed } from '../lib/diaries.js'
+import { useFollowingFeed } from '../lib/diaries.js'
 import { getSettings, markFeedSeen } from '../lib/store.js'
-import { useStoreVersion } from '../lib/useStore.js'
 
 const PAGE = 30
 
@@ -12,11 +11,10 @@ const PAGE = 30
  * A feed, not a social network: no likes, no comments, no counters.
  */
 export default function Following() {
-  const v = useStoreVersion()
   const [limit, setLimit] = useState(PAGE)
   // "New" is measured from the previous visit, frozen when the page opens; this visit is recorded on leaving.
   const [seenAt] = useState(() => getSettings().feedSeenAt)
-  const feed = useMemo(() => followingFeed({ limit, seenAt }), [v, limit, seenAt])
+  const feed = useFollowingFeed({ limit, seenAt })
 
   useEffect(() => () => markFeedSeen(), [])
 

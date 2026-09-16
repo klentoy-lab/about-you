@@ -169,6 +169,69 @@ export async function pullMyEntries() {
   return entries
 }
 
+/**
+ * Public diaries from the server — what any visitor may read.
+ * Row-level security does the filtering: private entries and private moments never arrive.
+ */
+export async function fetchPublicDiaries({ limit = 200 } = {}) {
+  const { data: rows, error } = await supabase
+    .from('entries')
+    .select('*')
+    .eq('visibility', 'public')
+    .eq('in_lockbin', false)
+    .order('entry_date', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  if (!rows?.length) return []
+
+  const owners = [...new Set(rows.map((r) => r.owner_id))]
+  const { data: profiles, error: pErr } = await supabase.from('profiles').select('*').in('id', owners)
+  if (pErr) throw pErr
+
+  const entries = await hydrate(rows)
+  await Promise.all(entries.flatMap((e) => e.media.map((m) => cacheRemoteMedia(m))))
+  const byOwner = new Map()
+  rows.forEach((row, i) => byOwner.set(row.owner_id, [...(byOwner.get(row.owner_id) ?? []), entries[i]]))
+
+  return (profiles ?? [])
+    .filter((p) => p.handle)
+    .map((p) => shapeRemoteDiary(p, byOwner.get(p.id) ?? []))
+    .filter((d) => d.count > 0)
+}
+
+/** One public diary by its handle. */
+export async function fetchPublicDiary(handle) {
+  const { data: profile, error } = await supabase.from('profiles').select('*').eq('handle', handle).maybeSingle()
+  if (error) throw error
+  if (!profile) return null
+  const { data: rows, error: eErr } = await supabase
+    .from('entries')
+    .select('*')
+    .eq('owner_id', profile.id)
+    .eq('visibility', 'public')
+    .eq('in_lockbin', false)
+    .order('entry_date', { ascending: false })
+  if (eErr) throw eErr
+  const entries = await hydrate(rows ?? [])
+  await Promise.all(entries.flatMap((e) => e.media.map((m) => cacheRemoteMedia(m))))
+  return shapeRemoteDiary(profile, entries)
+}
+
+function shapeRemoteDiary(profile, entries) {
+  // Only moments the server chose to send; an entry with nothing readable isn't shown at all.
+  const readable = entries.filter((e) => e.moments.some((m) => m.body.trim()) || e.media.length || e.track)
+  return {
+    handle: profile.handle,
+    ownerName: profile.owner_name || 'Someone',
+    dedication: (profile.dedication || '').trim() || profile.owner_name || 'You',
+    mine: false,
+    entries: readable,
+    count: readable.length,
+    firstDate: readable.at(-1)?.date ?? null,
+    latest: readable[0] ?? null,
+  }
+}
+
 export async function pullProfile(userId) {
   const [{ data: profile, error: e1 }, { data: settings, error: e2 }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),

@@ -1,14 +1,11 @@
-import { useMemo } from 'react'
 import { ShareButton } from '../components/ShareSheet.jsx'
 import { shortDate } from '../lib/date.js'
-import { listPublicDiaries } from '../lib/diaries.js'
+import { usePublicDiaries } from '../lib/diaries.js'
 import { moodGlow, moodGradient } from '../lib/moods.js'
 import { getSettings } from '../lib/store.js'
-import { useStoreVersion } from '../lib/useStore.js'
 
 export default function Diaries() {
-  const v = useStoreVersion()
-  const diaries = useMemo(() => listPublicDiaries(), [v])
+  const { diaries, loading, error } = usePublicDiaries()
   const settings = getSettings()
   const mineListed = diaries.some((d) => d.mine)
   const totalEntries = diaries.reduce((n, d) => n + d.count, 0)
@@ -32,7 +29,9 @@ export default function Diaries() {
         )}
       </header>
 
-      {diaries.length === 0 && (
+      {loading && diaries.length === 0 && <p className="type-meta mt-14 text-vanilla/50">Looking for diaries…</p>}
+      {error && <p className="type-meta mt-14 text-mango">Couldn’t reach the server — {error}</p>}
+      {!loading && diaries.length === 0 && (
         <p className="type-body mt-14">No diaries are open to read yet. When someone makes an entry public, their diary appears here.</p>
       )}
 
