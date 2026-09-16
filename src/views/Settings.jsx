@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { takenHandles } from '../lib/diaries.js'
-import { AuthError, sendSignInCode, signOut, useSession, verifySignInCode } from '../lib/auth.js'
+import { AuthError, linkError, sendSignInCode, signOut, useSession, verifySignInCode } from '../lib/auth.js'
 import { uploadLocalDiary, useSync } from '../lib/sync.js'
 import { clockLabel } from '../lib/date.js'
 import { cloudEnabled } from '../lib/supabase.js'
@@ -255,6 +255,7 @@ function AccountSettings() {
 
   return (
     <form onSubmit={submit} className="space-y-5">
+      {linkError && <Status tone="error">That sign-in link didn’t work — {linkError}. Send a new one.</Status>}
       <label className="type-meta block text-vanilla/60">
         Email
         <input
@@ -268,7 +269,7 @@ function AccountSettings() {
       </label>
       <Status tone="error">{error}</Status>
       <button type="submit" disabled={busy || !email.trim()} className="chip chip-solid">
-        {busy ? 'Sending…' : 'Email me a sign-in code'}
+        {busy ? 'Sending…' : 'Email me a sign-in link'}
       </button>
     </form>
   )
@@ -296,11 +297,12 @@ function EnterCode({ email, onBack }) {
   return (
     <form onSubmit={submit} className="space-y-5">
       <p className="text-[15px] leading-relaxed text-vanilla/80">
-        We emailed <span className="text-vanilla">{email}</span>. Type the six-digit code from that email here — that signs in
-        this browser. (Tapping the link works too, but only if it opens in this same browser.)
+        We emailed <span className="text-vanilla">{email}</span>. Open the <span className="text-vanilla">Sign in</span> link in
+        that email and you’re done — this page will notice. If the email also shows a six-digit code, you can type it here
+        instead.
       </p>
       <label className="type-meta block text-vanilla/60">
-        Six-digit code
+        Six-digit code (if your email has one)
         <input
           inputMode="numeric"
           autoComplete="one-time-code"

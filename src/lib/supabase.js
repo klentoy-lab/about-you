@@ -17,8 +17,11 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const cloudEnabled = Boolean(url && anonKey)
 
+// flowType 'implicit': the sign-in link carries its own tokens, so it works in whichever browser
+// opens it — including the in-app browser inside Gmail. (PKCE would only work in the browser that
+// asked for the link, which is exactly how people get stranded on a phone.)
 export const supabase = cloudEnabled
   ? createClient(url, anonKey, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' },
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' },
     })
   : null

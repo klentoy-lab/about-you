@@ -6,6 +6,21 @@ import { cloudEnabled, supabase } from './supabase.js'
 
 export class AuthError extends Error {}
 
+/**
+ * A sign-in link that failed says so in the address (expired, already used…).
+ * Read it once at startup, before anything tidies the URL away.
+ */
+export const linkError = (() => {
+  if (typeof window === 'undefined') return null
+  const from = (s) => new URLSearchParams(s.replace(/^[#?]/, ''))
+  const params = [from(window.location.hash), from(window.location.search)]
+  for (const p of params) {
+    const description = p.get('error_description')
+    if (description) return decodeURIComponent(description).replace(/\+/g, ' ')
+  }
+  return null
+})()
+
 let cached = null // the last known session, so views can render immediately
 const listeners = new Set()
 
