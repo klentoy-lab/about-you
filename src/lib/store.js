@@ -166,6 +166,13 @@ export function saveEntry(entry) {
   return saved
 }
 
+/** Deletes every entry in this browser. Settings, follows and the passcode stay. */
+export function clearEntries() {
+  const db = read()
+  db.entries = {}
+  write(db)
+}
+
 export function setInLockbin(date, inLockbin) {
   const db = read()
   if (!db.entries[date]) return

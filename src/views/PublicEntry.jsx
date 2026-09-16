@@ -36,8 +36,6 @@ export default function PublicEntry({ handle, date }) {
       <DedicationGutter name={diary.dedication} />
 
       <article className="relative px-5 pb-32 pt-10 md:ml-[76px] md:pl-14 md:pr-12 md:pt-14">
-        <MoodSpine mood={entry.mood} className="absolute inset-y-0 left-0 hidden w-[6px] md:block" />
-
         <span
           aria-hidden
           className="pointer-events-none absolute right-0 top-0 h-[60vmin] w-[60vmin] rounded-full opacity-25 blur-[100px]"
@@ -66,7 +64,8 @@ export default function PublicEntry({ handle, date }) {
             <span className="type-meta mt-[0.5em] text-vanilla/60">{year}</span>
           </span>
         </h1>
-        <MoodSpine mood={entry.mood} horizontal className="mt-5 h-[4px] w-full md:hidden" />
+        {/* the day's mood sits under its date, not as a bar out in the gutter */}
+        <MoodSpine mood={entry.mood} horizontal className="relative mt-6 h-[5px] w-full max-w-[42.5rem] rounded-full" />
 
         {entry.track && (
           <div className="relative mt-14">

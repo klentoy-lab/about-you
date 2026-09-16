@@ -14,7 +14,8 @@ import {
   setPasscode,
   useLockbin,
 } from '../lib/lockbin.js'
-import { getSettings, listEntries, saveSettings, slugify } from '../lib/store.js'
+import { clearEntries, getSettings, listEntries, saveSettings, slugify } from '../lib/store.js'
+import { deleteFile } from '../lib/mediaStore.js'
 import { useStoreVersion } from '../lib/useStore.js'
 
 /**
@@ -151,6 +152,9 @@ export default function Settings({ onboarding = false, onDone }) {
       <Section title="Lockbin" note="A second lock on top of your account. Sealed entries disappear from every public page.">
         <LockbinSettings />
       </Section>
+      <Section title="Start fresh" note="Delete every entry and its photos — useful after trying things out.">
+        <ClearDiary />
+      </Section>
     </main>
   )
 }
@@ -174,6 +178,52 @@ function Status({ tone, children }) {
     <p role={tone === 'error' ? 'alert' : 'status'} className={`text-[14px] ${tone === 'error' ? 'text-mango' : 'text-vanilla/70'}`}>
       {children}
     </p>
+  )
+}
+
+// ── Start fresh ────────────────────────────────────────────────────────────────
+
+function ClearDiary() {
+  useStoreVersion()
+  const session = useSession()
+  const entries = listEntries()
+  const [armed, setArmed] = useState(false)
+  const [done, setDone] = useState(false)
+
+  const wipe = async () => {
+    // photos and video first, so nothing is left behind in this browser's file store
+    await Promise.all(entries.flatMap((e) => (e.media ?? []).map((m) => deleteFile(m.id).catch(() => {}))))
+    clearEntries()
+    setArmed(false)
+    setDone(true)
+  }
+
+  if (!entries.length) {
+    return <Status>{done ? 'Deleted. Your diary is empty.' : 'No entries in this browser.'}</Status>
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-[15px] text-vanilla/75">
+        {entries.length} {entries.length === 1 ? 'entry' : 'entries'} in this browser.
+        {session && ' Because you’re signed in, deleting them removes them from your account on every device too.'}
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => (armed ? wipe() : setArmed(true))}
+          onBlur={() => setArmed(false)}
+          className={`chip ${armed ? 'chip-solid' : ''}`}
+        >
+          {armed ? 'Delete everything — sure?' : 'Delete all entries'}
+        </button>
+        {armed && (
+          <button type="button" onClick={() => setArmed(false)} className="chip">
+            Keep them
+          </button>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -231,7 +281,6 @@ function AccountSettings() {
       <button type="submit" disabled={busy || !email.trim()} className="chip chip-solid">
         {busy ? 'Sending…' : 'Email me a sign-in link'}
       </button>
-      <p className="text-[13px] text-vanilla/50">No password — Supabase emails you a one-time link.</p>
     </form>
   )
 }
