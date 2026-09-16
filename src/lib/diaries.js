@@ -12,10 +12,12 @@ import { useStoreVersion } from './useStore.js'
 function shape(diary) {
   const entries = diary.entries.map(publicView).filter(Boolean).sort((a, b) => b.date.localeCompare(a.date))
   return {
+    ownerId: diary.ownerId ?? null,
     handle: diary.handle,
     ownerName: diary.ownerName,
     dedication: dedicationOf(diary),
     mine: Boolean(diary.mine),
+    signedIn: Boolean(diary.signedIn),
     entries,
     count: entries.length,
     firstDate: entries.at(-1)?.date ?? null,
@@ -26,7 +28,15 @@ function shape(diary) {
 function ownDiary() {
   const s = getSettings()
   if (!s.handle || !s.ownerName) return null
-  return { handle: s.handle, ownerName: s.ownerName, dedication: s.dedication, mine: true, entries: listEntries() }
+  return {
+    ownerId: s.syncedUserId,
+    handle: s.handle,
+    ownerName: s.ownerName,
+    dedication: s.dedication,
+    mine: true,
+    signedIn: Boolean(s.syncedUserId),
+    entries: listEntries(),
+  }
 }
 
 /**
@@ -54,7 +64,11 @@ export const takenHandles = () => []
 
 const mergeByHandle = (mine, remote) => {
   const byHandle = new Map(remote.map((d) => [d.handle, d]))
-  for (const d of mine) byHandle.set(d.handle, d) // your own copy is the fresher one
+  for (const d of mine) {
+    // Your own copy is the fresher one — but a diary not yet tied to an account never hides
+    // someone else's real diary that happens to use the same address.
+    if (d.signedIn || !byHandle.has(d.handle)) byHandle.set(d.handle, d)
+  }
   return [...byHandle.values()].sort((a, b) => (b.latest?.date ?? '').localeCompare(a.latest?.date ?? ''))
 }
 

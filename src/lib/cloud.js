@@ -221,6 +221,7 @@ function shapeRemoteDiary(profile, entries) {
   // Only moments the server chose to send; an entry with nothing readable isn't shown at all.
   const readable = entries.filter((e) => e.moments.some((m) => m.body.trim()) || e.media.length || e.track)
   return {
+    ownerId: profile.id,
     handle: profile.handle,
     ownerName: profile.owner_name || 'Someone',
     dedication: (profile.dedication || '').trim() || profile.owner_name || 'You',
@@ -333,4 +334,70 @@ export async function pushProfile(settings, userId) {
     .from('account_settings')
     .upsert({ user_id: userId, default_visibility: settings.defaultVisibility })
   if (e2) throw e2
+}
+
+// ── following, hearts and their counts ───────────────────────────────────────
+
+/** The diaries this account follows, as [{ handle, ownerId, since }]. */
+export async function fetchMyFollows(userId) {
+  const { data: rows, error } = await supabase.from('follows').select('owner_id, created_at').eq('follower_id', userId)
+  if (error) throw error
+  if (!rows?.length) return []
+  const { data: profiles, error: pErr } = await supabase.from('profiles').select('id, handle').in('id', rows.map((r) => r.owner_id))
+  if (pErr) throw pErr
+  const handleOf = new Map((profiles ?? []).map((p) => [p.id, p.handle]))
+  return rows
+    .filter((r) => handleOf.get(r.owner_id))
+    .map((r) => ({ handle: handleOf.get(r.owner_id), ownerId: r.owner_id, since: r.created_at }))
+}
+
+async function ownerIdOf(handle) {
+  const { data, error } = await supabase.from('profiles').select('id').eq('handle', handle).maybeSingle()
+  if (error) throw error
+  return data?.id ?? null
+}
+
+export async function followOnServer({ handle, ownerId }, userId) {
+  const owner = ownerId ?? (await ownerIdOf(handle))
+  if (!owner || owner === userId) return
+  const { error } = await supabase.from('follows').upsert({ follower_id: userId, owner_id: owner }, { ignoreDuplicates: true })
+  if (error) throw error
+}
+
+export async function unfollowOnServer({ handle, ownerId }, userId) {
+  const owner = ownerId ?? (await ownerIdOf(handle))
+  if (!owner) return
+  const { error } = await supabase.from('follows').delete().eq('follower_id', userId).eq('owner_id', owner)
+  if (error) throw error
+}
+
+/** { ownerId: { followers, following } } — only the numbers are public, never who. */
+export async function fetchFollowCounts(ownerIds) {
+  if (!ownerIds.length) return {}
+  const { data, error } = await supabase.rpc('follow_counts', { owner_ids: ownerIds })
+  if (error) throw error
+  return Object.fromEntries((data ?? []).map((r) => [r.owner_id, { followers: Number(r.followers), following: Number(r.following) }]))
+}
+
+/** { entryId: hearts } for public entries. */
+export async function fetchHeartCounts(entryIds) {
+  if (!entryIds.length) return {}
+  const { data, error } = await supabase.rpc('heart_counts', { entry_ids: entryIds })
+  if (error) throw error
+  return Object.fromEntries((data ?? []).map((r) => [r.entry_id, Number(r.hearts)]))
+}
+
+/** Which of these entries the signed-in reader has hearted. */
+export async function fetchMyHearts(entryIds) {
+  if (!entryIds.length) return []
+  const { data, error } = await supabase.from('hearts').select('entry_id').in('entry_id', entryIds)
+  if (error) throw error
+  return (data ?? []).map((r) => r.entry_id)
+}
+
+export async function setHeart(entryId, on) {
+  const { error } = on
+    ? await supabase.from('hearts').insert({ entry_id: entryId })
+    : await supabase.from('hearts').delete().eq('entry_id', entryId)
+  if (error && error.code !== '23505') throw error // already hearted is fine
 }

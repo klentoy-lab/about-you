@@ -104,7 +104,7 @@ export default function Search() {
                 aria-checked={mood === mo.id}
                 aria-label={mo.label}
                 onClick={() => setMood(mood === mo.id ? null : mo.id)}
-                className={`block w-6 ${mood === mo.id ? 'h-10 outline outline-2 outline-offset-2 outline-mango' : 'h-7'}`}
+                className={`block w-6 ${mood === mo.id ? 'h-10 outline-2 outline-offset-2 outline-mango' : 'h-7'}`}
                 style={{ background: mo.gradient }}
               />
             ))}

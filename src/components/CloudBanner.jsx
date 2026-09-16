@@ -1,6 +1,8 @@
 import { useSession } from '../lib/auth.js'
 import { useSync } from '../lib/sync.js'
 import { cloudEnabled } from '../lib/supabase.js'
+import { readUnclaimed } from '../lib/store.js'
+import { useStoreVersion } from '../lib/useStore.js'
 
 /**
  * A quiet strip under the nav that answers "is my writing safe?".
@@ -9,7 +11,9 @@ import { cloudEnabled } from '../lib/supabase.js'
 export default function CloudBanner() {
   const session = useSession()
   const sync = useSync()
+  useStoreVersion()
   if (!cloudEnabled) return null
+  const unclaimed = session && readUnclaimed()
 
   if (!session) {
     return (
@@ -17,6 +21,19 @@ export default function CloudBanner() {
         <span className="text-vanilla">This diary is saved in this browser only.</span>
         <a href="#/settings" className="text-mango underline-offset-4 hover:underline">
           Sign in to keep it safe →
+        </a>
+      </Strip>
+    )
+  }
+  if (unclaimed) {
+    const n = unclaimed.entries?.length ?? 0
+    return (
+      <Strip>
+        <span className="text-vanilla">
+          {n} {n === 1 ? 'entry' : 'entries'} in this browser {n === 1 ? 'isn’t' : 'aren’t'} in your account.
+        </span>
+        <a href="#/settings" className="text-mango underline-offset-4 hover:underline">
+          Choose what to do →
         </a>
       </Strip>
     )

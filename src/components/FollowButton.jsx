@@ -1,16 +1,23 @@
-import { follow, isFollowing, unfollow } from '../lib/store.js'
+import { useState } from 'react'
+import { isFollowing } from '../lib/store.js'
+import { toggleFollow } from '../lib/social.js'
 import { useStoreVersion } from '../lib/useStore.js'
 
-/** Follow / Following toggle for someone else's diary. No counts, by design. */
-export default function FollowButton({ handle, name, className = '' }) {
+/** Follow / Following toggle for someone else's diary. Saved to your account when signed in. */
+export default function FollowButton({ handle, ownerId, name, className = '' }) {
   useStoreVersion()
   const following = isFollowing(handle)
+  const [error, setError] = useState('')
   return (
     <button
       type="button"
       aria-pressed={following}
       aria-label={following ? `Unfollow the diary to ${name}` : `Follow the diary to ${name}`}
-      onClick={() => (following ? unfollow(handle) : follow(handle))}
+      title={error || undefined}
+      onClick={() => {
+        setError('')
+        toggleFollow({ handle, ownerId }).catch(() => setError('Couldn’t reach the server — try again'))
+      }}
       className={`chip group/follow ${following ? 'border-vanilla/30 text-vanilla' : ''} ${className}`}
     >
       {following ? (

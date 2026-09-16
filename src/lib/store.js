@@ -73,15 +73,15 @@ export function saveSettings(patch) {
 }
 
 // ── following ────────────────────────────────────────────────────────────────
-// Mirrors the `follows` table: a reader follows a diary by handle. No counts are kept or shown.
+// Mirrors the `follows` table: a reader follows a diary by handle (and its owner's id, once known).
 
 export const listFollows = () => getSettings().follows ?? []
 
 export const isFollowing = (handle) => listFollows().some((f) => f.handle === handle)
 
-export function follow(handle) {
+export function follow(handle, ownerId = null) {
   if (!handle || isFollowing(handle)) return
-  saveSettings({ follows: [...listFollows(), { handle, since: new Date().toISOString() }] })
+  saveSettings({ follows: [...listFollows(), { handle, ownerId, since: new Date().toISOString() }] })
 }
 
 export function unfollow(handle) {
@@ -164,6 +164,56 @@ export function saveEntry(entry) {
   db.entries[entry.date] = saved
   write(db)
   return saved
+}
+
+// ── account boundaries ───────────────────────────────────────────────────────
+// The browser copy belongs to exactly one account. Signing out forgets it; a diary written
+// before signing in is set aside until its writer says whether it belongs to this account.
+
+const UNCLAIMED_KEY = 'about-you:unclaimed'
+
+/** Forgets everything personal in this browser: entries, name, dedication, follows, passcode. */
+export function resetAccountData() {
+  write({ settings: { ...DEFAULT_SETTINGS }, entries: {} })
+}
+
+export function stashUnclaimed(stash) {
+  try {
+    localStorage.setItem(UNCLAIMED_KEY, JSON.stringify(stash))
+  } catch {
+    /* storage full — nothing else we can do */
+  }
+  notifyChanged()
+}
+
+export function readUnclaimed() {
+  try {
+    return JSON.parse(localStorage.getItem(UNCLAIMED_KEY) ?? 'null')
+  } catch {
+    return null
+  }
+}
+
+export function clearUnclaimed() {
+  try {
+    localStorage.removeItem(UNCLAIMED_KEY)
+  } catch {
+    /* ignore */
+  }
+  notifyChanged()
+}
+
+/**
+ * What to do with this browser's copy when `userId` signs in:
+ *   keep    — it already belongs to this account
+ *   forget  — it belongs to a different account; never show it or merge it
+ *   ask     — written before anyone signed in; set it aside and let the writer decide
+ *   nothing — the browser holds no diary
+ */
+export function planSignIn({ syncedUserId, entryCount, ownerName }, userId) {
+  if (syncedUserId === userId) return 'keep'
+  if (syncedUserId) return 'forget'
+  return entryCount > 0 || ownerName ? 'ask' : 'nothing'
 }
 
 /** Deletes one day. Syncs as a deletion on the server too, when signed in. */

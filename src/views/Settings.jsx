@@ -10,7 +10,7 @@ import {
   useSession,
   verifySignInCode,
 } from '../lib/auth.js'
-import { uploadLocalDiary, useSync } from '../lib/sync.js'
+import { claimUnclaimed, discardUnclaimed, signOutAndForget, uploadLocalDiary, useSync } from '../lib/sync.js'
 import { clockLabel } from '../lib/date.js'
 import { cloudEnabled } from '../lib/supabase.js'
 import {
@@ -23,7 +23,7 @@ import {
   setPasscode,
   useLockbin,
 } from '../lib/lockbin.js'
-import { clearEntries, getSettings, listEntries, saveSettings, slugify } from '../lib/store.js'
+import { clearEntries, getSettings, listEntries, readUnclaimed, saveSettings, slugify } from '../lib/store.js'
 import { deleteFile } from '../lib/mediaStore.js'
 import { useStoreVersion } from '../lib/useStore.js'
 
@@ -133,6 +133,11 @@ export default function Settings({ onboarding = false, onDone }) {
       <main className="min-h-svh bg-espresso px-5 py-14 md:px-12 md:py-20">
         <p className="type-meta text-vanilla/60">Three things, then you can write</p>
         <h1 className="type-display mb-14 mt-4 text-[clamp(44px,7vw,104px)] text-vanilla">Start a diary</h1>
+        {cloudEnabled && (
+          <div className="mb-14 max-w-3xl empty:hidden">
+            <UnclaimedDiary />
+          </div>
+        )}
         {form}
 
         {/* Coming back on another device: sign in and the diary arrives — no questions to answer twice. */}
@@ -141,7 +146,7 @@ export default function Settings({ onboarding = false, onDone }) {
             <h2 className="type-display text-[clamp(28px,3.4vw,40px)] text-vanilla">Already have a diary?</h2>
             <p className="type-serif mt-2 text-[22px] text-vanilla/75">Sign in and everything you’ve written comes back.</p>
             <div className="mt-6">
-              <AccountSettings />
+              <AccountSettings showClaim={false} />
             </div>
           </section>
         )}
@@ -238,7 +243,7 @@ function ClearDiary() {
 
 // ── Account ────────────────────────────────────────────────────────────────────
 
-function AccountSettings() {
+function AccountSettings({ showClaim = true }) {
   const session = useSession()
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState('')
@@ -257,7 +262,13 @@ function AccountSettings() {
     setBusy(false)
   }
 
-  if (session) return <SignedIn session={session} />
+  if (session)
+    return (
+      <div className="space-y-10">
+        {showClaim && <UnclaimedDiary />}
+        <SignedIn session={session} />
+      </div>
+    )
 
   if (sent) return <EnterCode email={sent} onBack={() => setSent('')} />
 
@@ -322,9 +333,11 @@ function GoogleSignIn() {
             setBusy(false)
           }
         }}
-        className="inline-flex min-h-12 items-center gap-3 rounded-full bg-[#FFF1D6] px-5 text-[15px] font-medium text-[#100C08] transition-colors duration-500 hover:bg-white disabled:opacity-60"
+        className="group inline-flex min-h-12 items-center gap-3 rounded-full border border-mango/50 bg-raised/70 py-1.5 pl-1.5 pr-5 text-[15px] font-medium text-vanilla backdrop-blur transition-colors duration-500 hover:border-mango hover:bg-mango hover:text-ink disabled:cursor-wait disabled:border-mango/30"
       >
-        <GoogleMark />
+        <span className="grid h-9 w-9 place-items-center rounded-full bg-vanilla">
+          <GoogleMark />
+        </span>
         {busy ? 'Opening Google…' : 'Continue with Google'}
       </button>
       <Status tone="error">{error}</Status>
@@ -414,6 +427,20 @@ function EnterCode({ email, onBack }) {
 function SignedIn({ session }) {
   const sync = useSync()
   const [uploading, setUploading] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
+  const [unsaved, setUnsaved] = useState(false)
+
+  const leave = async (force) => {
+    setSigningOut(true)
+    setUnsaved(false)
+    if (await signOutAndForget({ force })) {
+      await signOut()
+      location.hash = '#/'
+    } else {
+      setUnsaved(true)
+    }
+    setSigningOut(false)
+  }
 
   const STATUS = {
     idle: sync.at ? `Everything saved to the server · ${clockLabel(sync.at)}` : 'Connected',
@@ -445,8 +472,79 @@ function SignedIn({ session }) {
         >
           {uploading || sync.phase === 'syncing' ? 'Syncing…' : sync.phase === 'error' ? 'Try again' : 'Sync now'}
         </button>
-        <button type="button" onClick={signOut} className="chip">
-          Sign out
+        <button type="button" disabled={signingOut} onClick={() => leave(false)} className="chip">
+          {signingOut ? 'Signing out…' : 'Sign out'}
+        </button>
+      </div>
+      <p className="text-[14px] text-vanilla/55">Signing out removes your diary from this browser. It stays safe in your account.</p>
+      {unsaved && (
+        <div role="alert" className="space-y-3 rounded-2xl border border-wine/40 bg-wine/15 p-5">
+          <p className="text-[15px] text-vanilla">
+            Some writing hasn’t reached the server yet. Signing out now would delete it from this browser for good.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={() => setUnsaved(false)} className="chip chip-solid">
+              Stay signed in
+            </button>
+            <button type="button" onClick={() => leave(true)} className="chip">
+              Sign out anyway
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** A diary written in this browser before signing in. It joins an account only when its writer says so. */
+function UnclaimedDiary() {
+  const session = useSession()
+  useStoreVersion()
+  const stash = readUnclaimed()
+  const [busy, setBusy] = useState('')
+  const [armed, setArmed] = useState(false)
+  if (!session || !stash) return null
+
+  const n = stash.entries?.length ?? 0
+  const who = stash.profile?.ownerName
+  const to = stash.profile?.dedication
+  return (
+    <div role="region" aria-label="Diary written before signing in" className="space-y-4 rounded-2xl border border-mango/40 bg-raised/60 p-5 md:p-6">
+      <p className="type-meta text-mango">Written before you signed in</p>
+      <p className="type-serif text-[22px] leading-snug text-vanilla">
+        This browser has {n} {n === 1 ? 'entry' : 'entries'}
+        {who ? ` by ${who}` : ''}
+        {to ? `, to ${to}` : ''}. Are they yours?
+      </p>
+      <p className="text-[14px] text-vanilla/60">
+        Only add them if you wrote them. If someone else used this browser, leave them out — they won’t be shown or uploaded.
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          disabled={Boolean(busy)}
+          onClick={async () => {
+            setBusy('claim')
+            await claimUnclaimed()
+            setBusy('')
+          }}
+          className="chip chip-solid"
+        >
+          {busy === 'claim' ? 'Adding…' : `Add to ${session.user.email}`}
+        </button>
+        <button
+          type="button"
+          disabled={Boolean(busy)}
+          onClick={async () => {
+            if (!armed) return setArmed(true)
+            setBusy('discard')
+            await discardUnclaimed()
+            setBusy('')
+          }}
+          onBlur={() => setArmed(false)}
+          className="chip"
+        >
+          {armed ? 'Delete them from this browser — sure?' : 'Not mine'}
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import HeartButton from './HeartButton.jsx'
 import MediaGallery from './MediaGallery.jsx'
 import { SongLine } from './SongCard.jsx'
 import MoodSpine from './MoodSpine.jsx'
@@ -160,16 +161,17 @@ function DeleteEntryButton({ date, onDelete }) {
 }
 
 /** One row for long public diaries, in the day's mood theme: date, first moment, and the span of times. */
-export function EntryLine({ entry, href, kicker }) {
+export function EntryLine({ entry, href, kicker, hearts = false }) {
   const ms = sortedMoments(entry)
   const first = ms[0]
   const mood = entry.mood ?? null
   return (
-    <a
-      href={href}
+    <div
       data-mood-scope={mood ?? undefined}
-      className="group relative block overflow-hidden rounded-2xl border border-vanilla/10 py-7 pl-8 pr-5 transition-colors duration-700 ease-soft hover:border-vanilla/25 md:pl-10 md:pr-8"
+      className="group relative block overflow-hidden rounded-2xl border border-vanilla/10 py-7 pl-8 pr-5 transition-colors duration-700 ease-soft focus-within:border-vanilla/25 hover:border-vanilla/25 md:pl-10 md:pr-8"
     >
+      {/* the whole card opens the day; the heart sits above this link */}
+      <a href={href} className="absolute inset-0 z-1 rounded-2xl" aria-label={`Read ${entry.date}`} />
       {mood && (
         <span
           aria-hidden
@@ -197,13 +199,18 @@ export function EntryLine({ entry, href, kicker }) {
             )}
             {first && entry.media?.length > 0 && ' · '}
             {mediaSummary(entry.media)}
-            <span className="ml-4 text-mango opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-focus-visible:opacity-100">
+            <span className="ml-4 text-mango opacity-0 transition-opacity duration-700 group-focus-within:opacity-100 group-hover:opacity-100">
               Read →
             </span>
           </p>
+          {hearts && (
+            <div className="relative z-2 mt-4">
+              <HeartButton entryId={entry.id} />
+            </div>
+          )}
         </div>
       </div>
-    </a>
+    </div>
   )
 }
 

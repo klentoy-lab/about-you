@@ -7,10 +7,12 @@ import { shortDate } from '../lib/date.js'
 import { moodGlow } from '../lib/moods.js'
 import { useMoodTheme } from '../lib/theme.js'
 import { usePublicDiary } from '../lib/diaries.js'
+import { countLabel, useFollowCounts } from '../lib/social.js'
 
 /** A diary as anyone sees it: the dedication first, then every public entry. Read-only. */
 export default function PublicDiary({ handle }) {
   const { diary, loading } = usePublicDiary(handle)
+  const follows = useFollowCounts(diary?.ownerId)
   // The first screen is the masthead alone; the side dedication arrives once it has scrolled away.
   const header = useRef(null)
   const [pastMasthead, setPastMasthead] = useState(false)
@@ -46,7 +48,14 @@ export default function PublicDiary({ handle }) {
           <Masthead
             name={diary.dedication}
             byline={`from ${diary.ownerName}, one day at a time`}
-            meta={`${diary.count} ${diary.count === 1 ? 'entry' : 'entries'} · First entry ${shortDate(diary.firstDate)}`}
+            meta={[
+              `${diary.count} ${diary.count === 1 ? 'entry' : 'entries'}`,
+              follows && countLabel(follows.followers, 'follower', 'followers'),
+              follows && `${follows.following.toLocaleString('en-PH')} following`,
+              `First entry ${shortDate(diary.firstDate)}`,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
             actions={
               <>
                 <ShareButton
@@ -56,7 +65,7 @@ export default function PublicDiary({ handle }) {
                   className="chip chip-solid"
                   label="Share this diary"
                 />
-                {!diary.mine && <FollowButton handle={diary.handle} name={diary.dedication} />}
+                {!diary.mine && <FollowButton handle={diary.handle} ownerId={diary.ownerId} name={diary.dedication} />}
                 <a
                   href="#entries"
                   className="chip"
@@ -76,7 +85,7 @@ export default function PublicDiary({ handle }) {
         <p className="type-meta rule-hairline py-6 text-vanilla/60">By {diary.ownerName}</p>
         <MonthGroups
           entries={diary.entries}
-          renderEntry={(e) => <EntryLine entry={e} href={`#/d/${diary.handle}/${e.date}`} />}
+          renderEntry={(e) => <EntryLine entry={e} href={`#/d/${diary.handle}/${e.date}`} hearts />}
         />
       </div>
     </main>

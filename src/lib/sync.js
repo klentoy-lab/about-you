@@ -9,8 +9,23 @@
 
 import { useSyncExternalStore } from 'react'
 import { cloudEnabled, supabase } from './supabase.js'
-import { deleteEntry, pullMyEntries, pullProfile, pushEntry, pushProfile } from './cloud.js'
-import { getSettings, listEntries, replaceEntries, saveSettings, subscribe } from './store.js'
+import { deleteEntry, fetchMyFollows, pullMyEntries, pullProfile, pushEntry, pushProfile } from './cloud.js'
+import { deleteFile, getFile, putFile } from './mediaStore.js'
+import { lock } from './lockbin.js'
+import {
+  clearUnclaimed,
+  deleteEntry as removeLocalEntry,
+  getSettings,
+  listEntries,
+  planSignIn,
+  readUnclaimed,
+  replaceEntries,
+  resetAccountData,
+  saveSettings,
+  stashUnclaimed,
+  subscribe,
+  uid,
+} from './store.js'
 
 let userId = null
 let unsubscribe = null
@@ -79,12 +94,19 @@ export async function startSync(session) {
 
   try {
     pulling = true
-    const [profile, remoteEntries] = await Promise.all([pullProfile(userId), pullMyEntries()])
+    // Decide what this browser's copy is before anything is fetched or merged. A diary only ever
+    // merges into the account it was written in — never into whoever happens to sign in next.
+    const before = getSettings()
+    const plan = planSignIn({ syncedUserId: before.syncedUserId, entryCount: listEntries().length, ownerName: before.ownerName }, userId)
+    if (plan === 'forget') await forgetBrowserDiary()
+    if (plan === 'ask') {
+      stashUnclaimed({ entries: listEntries(), profile: pickProfile(before), at: new Date().toISOString() })
+      resetAccountData() // the blobs stay: the stash still points at them
+    }
 
+    const [profile, remoteEntries] = await Promise.all([pullProfile(userId), pullMyEntries()])
     const current = getSettings()
-    // Was this browser's diary written while signed into a different account? Then it isn't ours to merge.
-    const belongsToSomeoneElse = Boolean(current.syncedUserId) && current.syncedUserId !== userId
-    const local = belongsToSomeoneElse ? [] : listEntries()
+    const local = plan === 'keep' ? listEntries() : []
 
     // Merge day by day. The server never silently overwrites writing that only exists here:
     // whichever copy is newer — or has more in it — wins, and a local winner is pushed back up.
@@ -93,16 +115,16 @@ export async function startSync(session) {
     snapshot = new Map(merged.filter((e) => fromServer.has(e.id)).map((e) => [e.id, entryKey(e)]))
 
     // Profile: the server's wins when it has one (so nobody introduces themselves twice);
-    // if the server's is still empty, this browser's name is sent up.
+    // if the server's is still empty, this account's name as written here is sent up.
     const serverHasProfile = Boolean(profile.ownerName || profile.handle)
     if (serverHasProfile) {
       saveSettings({ ...profile, syncedUserId: userId })
       settingsSnapshot = settingsKey({ ...current, ...profile })
     } else {
-      if (belongsToSomeoneElse) saveSettings({ ownerName: '', dedication: '', handle: '' })
       saveSettings({ syncedUserId: userId })
-      settingsSnapshot = '' // forces the local profile to be pushed
+      settingsSnapshot = current.ownerName ? '' : settingsKey(current) // push a name only if there is one
     }
+    await pullFollows()
     set({ phase: 'syncing', at: new Date() })
   } catch (e) {
     set({ phase: 'error', error: e.message ?? 'Sync failed' })
@@ -113,6 +135,90 @@ export async function startSync(session) {
   unsubscribe?.()
   unsubscribe = subscribe(queueChanges)
   queueChanges()
+}
+
+const pickProfile = (s) => ({ ownerName: s.ownerName, dedication: s.dedication, handle: s.handle, defaultVisibility: s.defaultVisibility })
+
+/** Removes every trace of the current diary from this browser: entries, profile, follows, passcode, photos. */
+async function forgetBrowserDiary(entries = listEntries()) {
+  await Promise.all(entries.flatMap((e) => (e.media ?? []).map((m) => deleteFile(m.id).catch(() => {}))))
+  resetAccountData()
+  lock()
+}
+
+/** Replaces the local follow list with this account's, from the server. */
+async function pullFollows() {
+  try {
+    const follows = await fetchMyFollows(userId)
+    saveSettings({ follows })
+  } catch {
+    /* follows are a nicety — keep whatever is here */
+  }
+}
+
+/**
+ * Signing out: finish sending what's pending, then forget the diary in this browser so the next
+ * person to use it starts clean. Returns false (and keeps everything) if unsent writing would be lost,
+ * unless `force` is set.
+ */
+export async function signOutAndForget({ force = false } = {}) {
+  if (userId) {
+    await queueChanges()
+    await pushing
+    if (state.phase === 'error' && !force) return false
+  }
+  stopSync()
+  await forgetBrowserDiary()
+  await discardUnclaimed()
+  return true
+}
+
+// ── a diary written before signing in ────────────────────────────────────────
+
+/** Adds the set-aside diary to the signed-in account, under fresh ids so it can never collide with anyone's rows. */
+export async function claimUnclaimed() {
+  const stash = readUnclaimed()
+  if (!stash || !userId) return
+  const byDate = new Map(listEntries().map((e) => [e.date, e]))
+
+  for (const old of stash.entries ?? []) {
+    const media = []
+    for (const m of old.media ?? []) {
+      const blob = await getFile(m.id).catch(() => null)
+      if (!blob) continue // lives only on someone else's server copy — nothing here to bring along
+      const id = uid()
+      await putFile(id, blob)
+      await deleteFile(m.id).catch(() => {})
+      media.push({ ...m, id, storagePath: undefined })
+    }
+    const moments = (old.moments ?? []).map((m) => ({ ...m, id: uid() }))
+    const canvas = (old.canvas ?? []).map((c) => ({ ...c, id: uid() }))
+    const existing = byDate.get(old.date)
+    const next = existing
+      ? {
+          ...existing,
+          mood: existing.mood ?? old.mood,
+          track: existing.track ?? old.track,
+          moments: [...existing.moments, ...moments],
+          media: [...existing.media, ...media],
+          canvas: [...(existing.canvas ?? []), ...canvas],
+          updatedAt: new Date().toISOString(),
+        }
+      : { ...old, id: uid(), moments, media, canvas, updatedAt: new Date().toISOString() }
+    byDate.set(old.date, next)
+  }
+  replaceEntries([...byDate.values()])
+
+  if (!getSettings().ownerName && stash.profile?.ownerName) saveSettings(stash.profile)
+  clearUnclaimed()
+}
+
+/** Throws the set-aside diary away, photos included. */
+export async function discardUnclaimed() {
+  const stash = readUnclaimed()
+  if (!stash) return
+  await Promise.all((stash.entries ?? []).flatMap((e) => (e.media ?? []).map((m) => deleteFile(m.id).catch(() => {}))))
+  clearUnclaimed()
 }
 
 export function stopSync() {
@@ -172,7 +278,8 @@ function queueChanges(force = false) {
           settingsSnapshot = settingsKey(job.settings)
         }
       } catch (e) {
-        firstError ??= e.message ?? 'Couldn’t save to the server' // keep going: other days may still save
+        if (job.kind === 'entry' && belongsToAnotherAccount(e)) setAside(job.entry)
+        else firstError ??= e.message ?? 'Couldn’t save to the server' // keep going: other days may still save
       }
       set({ pending: Math.max(0, state.pending - 1) })
     }
@@ -185,6 +292,17 @@ function queueChanges(force = false) {
     }
   })
   return pushing
+}
+
+// The server refuses to update a row another account owns. That day was copied into this browser from
+// someone else's diary (before accounts were kept apart), so it leaves this account's diary and waits
+// in the "written before you signed in" prompt, where its writer can add it or throw it away.
+const belongsToAnotherAccount = (e) => e?.code === '42501' && /"entries"/.test(e.message ?? '')
+
+function setAside(entry) {
+  const stash = readUnclaimed() ?? { entries: [], profile: {}, at: new Date().toISOString() }
+  stashUnclaimed({ ...stash, entries: [...stash.entries.filter((e) => e.id !== entry.id), entry] })
+  removeLocalEntry(entry.date)
 }
 
 // Follow the session: start on sign-in, stop on sign-out.

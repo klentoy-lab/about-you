@@ -3,6 +3,7 @@ import { shortDate } from '../lib/date.js'
 import { usePublicDiaries } from '../lib/diaries.js'
 import { moodGlow, moodGradient } from '../lib/moods.js'
 import { getSettings } from '../lib/store.js'
+import { countLabel, useFollowCounts } from '../lib/social.js'
 
 export default function Diaries() {
   const { diaries, loading, error } = usePublicDiaries()
@@ -105,8 +106,14 @@ function DiaryCover({ diary: d }) {
 
       <p className="type-meta relative mt-auto flex flex-wrap gap-x-4 gap-y-1 pt-8 text-vanilla/55">
         <span>By {d.ownerName}</span>
+        <Followers ownerId={d.ownerId} />
         {d.firstDate && <span>Since {shortDate(d.firstDate)}</span>}
       </p>
     </article>
   )
+}
+
+function Followers({ ownerId }) {
+  const counts = useFollowCounts(ownerId)
+  return counts ? <span>{countLabel(counts.followers, 'follower', 'followers')}</span> : null
 }

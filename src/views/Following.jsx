@@ -8,7 +8,7 @@ const PAGE = 30
 
 /**
  * New public entries from the diaries you follow, newest first.
- * A feed, not a social network: no likes, no comments, no counters.
+ * A feed, not a social network: hearts and follower numbers, but no comments.
  */
 export default function Following() {
   const [limit, setLimit] = useState(PAGE)
@@ -47,7 +47,7 @@ export default function Following() {
                 <a href={`#/d/${d.handle}`} className="type-meta whitespace-nowrap text-vanilla transition-colors hover:text-mango">
                   To {d.dedication}
                 </a>
-                <FollowButton handle={d.handle} name={d.dedication} className="min-h-8 px-3" />
+                <FollowButton handle={d.handle} ownerId={d.ownerId} name={d.dedication} className="min-h-8 px-3" />
               </li>
             ))}
           </ul>
@@ -58,6 +58,7 @@ export default function Following() {
                 <EntryLine
                   entry={entry}
                   href={`#/d/${diary.handle}/${entry.date}`}
+                  hearts
                   kicker={
                     <p className="type-meta flex flex-wrap items-center gap-x-3 gap-y-1 text-vanilla/60">
                       <span className="text-vanilla">To {diary.dedication}</span>

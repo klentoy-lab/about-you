@@ -4,6 +4,7 @@ import MoodSpine from '../components/MoodSpine.jsx'
 import SongCard from '../components/SongCard.jsx'
 import { ShareButton } from '../components/ShareSheet.jsx'
 import FollowButton from '../components/FollowButton.jsx'
+import HeartButton from '../components/HeartButton.jsx'
 import { moodGlow } from '../lib/moods.js'
 import { useMoodTheme } from '../lib/theme.js'
 import { DedicationGutter, mediaSummary } from '../components/EntryList.jsx'
@@ -47,7 +48,7 @@ export default function PublicEntry({ handle, date }) {
             ← To {diary.dedication}
           </a>
           <span className="flex flex-wrap gap-3">
-          {!diary.mine && <FollowButton handle={diary.handle} name={diary.dedication} />}
+          {!diary.mine && <FollowButton handle={diary.handle} ownerId={diary.ownerId} name={diary.dedication} />}
           <ShareButton
             path={`d/${diary.handle}/${entry.date}`}
             name={diary.dedication}
@@ -91,6 +92,10 @@ export default function PublicEntry({ handle, date }) {
               </div>
             </section>
           )}
+
+          <div className="rule-hairline mt-14 max-w-170 pt-6">
+            <HeartButton entryId={entry.id} size="lg" />
+          </div>
         </div>
 
         <nav aria-label="More entries" className="type-meta rule-hairline mt-20 flex max-w-170 justify-between gap-6 pt-6">
