@@ -42,7 +42,7 @@ export default function Splash({ onDone, minMs = 2600 }) {
       role="status"
       aria-live="polite"
       aria-label="Welcome to About You, your digital diary. Loading."
-      className="fixed inset-0 z-[100] flex flex-col justify-between overflow-hidden bg-ink px-5 py-6 md:px-12 md:py-10"
+      className="fixed inset-0 z-100 flex flex-col justify-between overflow-hidden bg-ink px-5 py-6 md:px-12 md:py-10"
       exit={{ opacity: 0, scale: 1.01 }}
       transition={{ duration: 0.9, ease: [0.4, 0, 0.2, 1] }}
     >
@@ -104,7 +104,7 @@ export default function Splash({ onDone, minMs = 2600 }) {
       </div>
 
       <div className="relative">
-        <div className="h-[3px] w-full overflow-hidden rounded-full bg-vanilla/10">
+        <div className="h-0.75 w-full overflow-hidden rounded-full bg-vanilla/10">
           <div
             className="h-full rounded-full"
             style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #FF9408, #CA3F16 55%, #95122C)' }}

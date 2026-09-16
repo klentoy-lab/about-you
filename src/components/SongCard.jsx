@@ -24,7 +24,7 @@ export default function SongCard({ track, onChange, onRemove }) {
   return (
     <article
       aria-label={`Song of the day: ${track.title}${track.artist ? ` by ${track.artist}` : ''}`}
-      className="print-avoid-break relative max-w-[36rem] overflow-hidden bg-[#FFF1D6] text-ink ring-1 ring-ink/10"
+      className="print-avoid-break relative max-w-xl overflow-hidden bg-[#FFF1D6] text-ink ring-1 ring-ink/10"
       style={{ borderRadius: 'var(--radius-card)' }}
     >
       <div className="flex gap-5 p-4 pr-5 md:p-5">
@@ -32,7 +32,7 @@ export default function SongCard({ track, onChange, onRemove }) {
         <div className="relative h-24 w-24 shrink-0 md:h-28 md:w-28">
           <div
             aria-hidden
-            className={`absolute inset-0 rounded-full transition-transform duration-[1100ms] ease-soft ${playing ? 'translate-x-[42%]' : 'translate-x-[18%]'}`}
+            className={`absolute inset-0 rounded-full transition-transform duration-1100 ease-soft ${playing ? 'translate-x-[42%]' : 'translate-x-[18%]'}`}
             style={{ background: 'repeating-radial-gradient(circle, #100C08 0 2px, #2C1F14 2px 4px)' }}
           >
             <div className={`absolute inset-[34%] rounded-full bg-mango ${playing ? 'motion-safe:animate-spin' : ''}`} style={{ animationDuration: '5s' }}>
@@ -46,7 +46,7 @@ export default function SongCard({ track, onChange, onRemove }) {
           )}
         </div>
 
-        <div className={`min-w-0 flex-1 transition-[padding] duration-[1100ms] ease-soft ${playing ? 'pl-8' : 'pl-3'}`}>
+        <div className={`min-w-0 flex-1 transition-[padding] duration-1100 ease-soft ${playing ? 'pl-8' : 'pl-3'}`}>
           <p className="type-meta flex items-center gap-2 text-ink/60">
             <SpotifyGlyph /> Song of the day
           </p>
@@ -153,7 +153,7 @@ export function MusicAttach({ onAttach, onCancel }) {
   }
 
   return (
-    <form onSubmit={submit} className="max-w-[36rem] bg-raised p-5" style={{ borderRadius: 'var(--radius-card)' }}>
+    <form onSubmit={submit} className="max-w-xl bg-raised p-5" style={{ borderRadius: 'var(--radius-card)' }}>
       <p className="type-meta flex items-center gap-2 text-vanilla/70">
         <SpotifyGlyph /> Song of the day
       </p>

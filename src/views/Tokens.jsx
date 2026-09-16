@@ -52,9 +52,9 @@ export default function Tokens() {
       </Section>
 
       <Section title="Surfaces" meta="No cards · no shadows · no uniform radius">
-        <figure className="max-w-[26rem]">
+        <figure className="max-w-104">
           <div className="bg-mist p-2" style={{ borderRadius: 'var(--radius-media)' }}>
-            <div className="aspect-[4/3] w-full" style={{ background: 'var(--g03)', borderRadius: 'var(--radius-media)' }} />
+            <div className="aspect-4/3 w-full" style={{ background: 'var(--g03)', borderRadius: 'var(--radius-media)' }} />
           </div>
           <figcaption className="type-meta mt-3 text-vanilla/70">Media frame · mist · 2px max</figcaption>
         </figure>

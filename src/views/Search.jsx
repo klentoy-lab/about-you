@@ -64,7 +64,7 @@ export default function Search() {
     <main className="px-5 pb-32 pt-12 md:px-12 md:pt-16">
       <h1 className="type-display text-[clamp(48px,8vw,120px)] text-vanilla">Search</h1>
 
-      <label className="mt-10 block max-w-[42.5rem]">
+      <label className="mt-10 block max-w-170">
         <span className="sr-only">Search your entries</span>
         <input
           type="search"
@@ -124,7 +124,7 @@ export default function Search() {
               onClick={() => set(!on)}
               className={`flex items-center gap-2 py-1 ${on ? 'text-vanilla' : 'text-mango hover:text-vanilla'}`}
             >
-              <span aria-hidden className={`inline-block h-[7px] w-[7px] border border-current ${on ? 'bg-mango border-mango' : ''}`} />
+              <span aria-hidden className={`inline-block h-1.75 w-1.75 border border-current ${on ? 'bg-mango border-mango' : ''}`} />
               {label}
             </button>
           ))}
@@ -136,13 +136,13 @@ export default function Search() {
         {sealedCount > 0 && ` · ${sealedCount} in the Lockbin not searched`}
       </p>
 
-      <ol className="mt-6 max-w-[56rem]">
+      <ol className="mt-6 max-w-4xl">
         {results.slice(0, 200).map(({ entry, moment }) => {
           const { weekday, dayMonth, year } = headline(entry.date)
           return (
             <li key={moment.id} className="rule-hairline">
               <a href={`#/today/${entry.date}`} className="group relative block py-7 pl-6">
-                <MoodSpine mood={entry.mood} className="absolute inset-y-4 left-0 w-[6px]" />
+                <MoodSpine mood={entry.mood} className="absolute inset-y-4 left-0 w-1.5" />
                 <p className="type-meta text-vanilla/60">
                   <span className="text-vanilla group-hover:text-mango">
                     {weekday} {dayMonth} {year}

@@ -35,7 +35,7 @@ export default function PublicEntry({ handle, date }) {
     <main className="relative min-h-[calc(100svh-56px)]">
       <DedicationGutter name={diary.dedication} />
 
-      <article className="relative px-5 pb-32 pt-10 md:ml-[76px] md:pl-14 md:pr-12 md:pt-14">
+      <article className="relative px-5 pb-32 pt-10 md:ml-19 md:pl-14 md:pr-12 md:pt-14">
         <span
           aria-hidden
           className="pointer-events-none absolute right-0 top-0 h-[60vmin] w-[60vmin] rounded-full opacity-25 blur-[100px]"
@@ -65,7 +65,7 @@ export default function PublicEntry({ handle, date }) {
           </span>
         </h1>
         {/* the day's mood sits under its date, not as a bar out in the gutter */}
-        <MoodSpine mood={entry.mood} horizontal className="relative mt-6 h-[5px] w-full max-w-[42.5rem] rounded-full" />
+        <MoodSpine mood={entry.mood} horizontal className="relative mt-6 h-1.25 w-full max-w-170 rounded-full" />
 
         {entry.track && (
           <div className="relative mt-14">
@@ -73,11 +73,11 @@ export default function PublicEntry({ handle, date }) {
           </div>
         )}
 
-        <div className="mt-14 max-w-[56rem]">
-          <ol className="max-w-[42.5rem]">
+        <div className="mt-14 max-w-4xl">
+          <ol className="max-w-170">
             {moments.map((m, i) => (
               <li key={m.id} className={i > 0 ? 'rule-hairline mt-14 pt-14' : ''}>
-                <p className="type-meta mb-3 flex min-h-[25px] items-center text-vanilla/60">{formatTime(m.time)}</p>
+                <p className="type-meta mb-3 flex min-h-6.25 items-center text-vanilla/60">{formatTime(m.time)}</p>
                 <p className="type-body whitespace-pre-line">{m.body}</p>
               </li>
             ))}
@@ -85,7 +85,7 @@ export default function PublicEntry({ handle, date }) {
 
           {entry.media.length > 0 && (
             <section aria-label="Photos and video" className="rule-hairline mt-14 pt-6">
-              <p className="type-meta flex min-h-[36px] items-center text-vanilla/50">{mediaSummary(entry.media)}</p>
+              <p className="type-meta flex min-h-9 items-center text-vanilla/50">{mediaSummary(entry.media)}</p>
               <div className="mt-6">
                 <MediaGallery items={entry.media} layout={entry.mediaLayout} meta={`${dayMonth} ${year}`} />
               </div>
@@ -93,7 +93,7 @@ export default function PublicEntry({ handle, date }) {
           )}
         </div>
 
-        <nav aria-label="More entries" className="type-meta rule-hairline mt-20 flex max-w-[42.5rem] justify-between gap-6 pt-6">
+        <nav aria-label="More entries" className="type-meta rule-hairline mt-20 flex max-w-170 justify-between gap-6 pt-6">
           {older ? (
             <a href={`#/d/${diary.handle}/${older.date}`} className="text-mango hover:text-vanilla">
               ← {headline(older.date).dayMonth}

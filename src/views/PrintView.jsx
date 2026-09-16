@@ -80,10 +80,10 @@ export default function PrintView({ kind, param }) {
   const back = kind === 'month' ? `#/calendar/${param}` : param === toDateKey() ? '#/' : `#/today/${param}`
 
   return (
-    <div className="min-h-[100svh] pb-16">
+    <div className="min-h-svh pb-16">
       {/* toolbar — never printed */}
       <div className="sticky top-0 z-40 border-b border-vanilla/10 bg-ink/90 text-[#FFF1D6] backdrop-blur-md print:hidden">
-        <div className="mx-auto flex max-w-[64rem] flex-wrap items-center gap-x-4 gap-y-3 px-5 py-3">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-3 px-5 py-3">
           <a href={back} className="chip border-[#FFF1D6]/25 text-[#FFF1D6]">
             ← Back
           </a>
@@ -118,14 +118,14 @@ export default function PrintView({ kind, param }) {
             {preparing ? 'Preparing…' : 'Save as PDF'}
           </button>
         </div>
-        <p className="mx-auto max-w-[64rem] px-5 pb-3 text-[13px] text-[#FFF1D6]/55">
+        <p className="mx-auto max-w-5xl px-5 pb-3 text-[13px] text-[#FFF1D6]/55">
           In the print window, choose <strong className="font-normal text-[#FFF1D6]">Save as PDF</strong> as the destination.
           Turn on “Background graphics” if the pages print without colour.
         </p>
       </div>
 
       {entries.length === 0 ? (
-        <div className="mx-auto max-w-[40rem] px-5 pt-20 text-center print:hidden">
+        <div className="mx-auto max-w-160 px-5 pt-20 text-center print:hidden">
           <p className="type-body mx-auto">{valid ? 'Nothing written here yet, so there’s nothing to export.' : 'That export link isn’t valid.'}</p>
           <a href={back} className="chip mt-8">
             ← Back
@@ -153,7 +153,7 @@ export default function PrintView({ kind, param }) {
 function PageFrame({ children, dedication, handle, mood, themed, label }) {
   return (
     <section
-      className="print-page rounded-[6px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] print:shadow-none"
+      className="print-page rounded-md shadow-[0_20px_60px_rgba(0,0,0,0.35)] print:shadow-none"
       data-mood-scope={themed && mood ? mood : undefined}
       aria-label={label}
     >
@@ -191,7 +191,7 @@ function MonthCover({ month, dedication, entries, handle }) {
     <PageFrame dedication={dedication} handle={handle} label={`${monthLabel(month)} cover`}>
       <div className="flex min-h-[220mm] flex-col justify-end">
         <p className="type-meta text-vanilla">To</p>
-        <p className="type-display mt-2 break-words text-[96px] leading-[0.86] tracking-[-0.04em] text-vanilla">{dedication || 'You'}</p>
+        <p className="type-display mt-2 wrap-break-word text-[96px] leading-[0.86] tracking-[-0.04em] text-vanilla">{dedication || 'You'}</p>
         <p className="type-serif mt-8 text-[44px] text-vanilla/90">
           {name[0] + name.slice(1).toLowerCase()} {year}
         </p>
@@ -233,7 +233,7 @@ function EntryPage({ entry, dedication, handle, sealed, themed }) {
           <span className="type-meta mt-[0.6em] text-vanilla/60">{year}</span>
         </span>
       </h1>
-      <MoodSpine mood={entry.mood} horizontal className="mt-5 h-[5px] w-full rounded-full" />
+      <MoodSpine mood={entry.mood} horizontal className="mt-5 h-1.25 w-full rounded-full" />
 
       {sealed ? (
         <div className="mt-12">
@@ -248,11 +248,11 @@ function EntryPage({ entry, dedication, handle, sealed, themed }) {
             </div>
           )}
 
-          <div className="mt-10 max-w-[56rem]">
+          <div className="mt-10 max-w-4xl">
             <ol>
               {moments.map((m, i) => (
                 <li key={m.id} className={`print-avoid-break ${i > 0 ? 'rule-hairline mt-10 pt-10' : ''}`}>
-                  <p className="type-meta mb-3 flex min-h-[25px] items-center text-mango">{formatTime(m.time)}</p>
+                  <p className="type-meta mb-3 flex min-h-6.25 items-center text-mango">{formatTime(m.time)}</p>
                   <p className="type-body max-w-none whitespace-pre-line">{m.body}</p>
                 </li>
               ))}
@@ -260,7 +260,7 @@ function EntryPage({ entry, dedication, handle, sealed, themed }) {
 
             {entry.media?.length > 0 && (
               <section aria-label="Photos and video" className={moments.length ? 'rule-hairline mt-10 pt-6' : ''}>
-                <p className="type-meta flex min-h-[36px] items-center text-vanilla/50">{mediaSummary(entry.media)}</p>
+                <p className="type-meta flex min-h-9 items-center text-vanilla/50">{mediaSummary(entry.media)}</p>
                 <div className="mt-4">
                   <MediaGallery items={entry.media} layout={entry.mediaLayout} meta={shortDate(entry.date)} />
                 </div>

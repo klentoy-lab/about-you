@@ -71,7 +71,7 @@ export default function VisibilityToggle({ value, onChange, heldBy, label = 'Vis
           role="menu"
           aria-label={label}
           onKeyDown={onMenuKey}
-          className="absolute left-0 top-full z-30 mt-2 min-w-[15rem] origin-top-left rounded-[12px] bg-ink py-2 motion-safe:animate-[soft-pop_420ms_cubic-bezier(0.22,1,0.36,1)_both]"
+          className="absolute left-0 top-full z-30 mt-2 min-w-60 origin-top-left rounded-xl bg-ink py-2 motion-safe:animate-[soft-pop_420ms_cubic-bezier(0.22,1,0.36,1)_both]"
         >
           {VISIBILITY.map((v) => (
             <button
@@ -101,7 +101,7 @@ export default function VisibilityToggle({ value, onChange, heldBy, label = 'Vis
 
 /** Solid square = sealed, split = link-only, hollow = open. */
 function Glyph({ state }) {
-  const base = 'inline-block h-[7px] w-[7px] border border-current'
+  const base = 'inline-block h-1.75 w-1.75 border border-current'
   if (state === 'private') return <span aria-hidden className={`${base} bg-current`} />
   if (state === 'unlisted')
     return (

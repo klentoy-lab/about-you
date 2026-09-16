@@ -22,7 +22,7 @@ export default function Following() {
 
   return (
     <main className="px-5 pb-32 pt-12 md:px-12 md:pt-16">
-      <header className="max-w-[60rem]">
+      <header className="max-w-240">
         <p className="type-meta text-vanilla/60">
           {feed.diaries.length} {feed.diaries.length === 1 ? 'diary' : 'diaries'} followed
           {newCount > 0 && ` · ${newCount} new since your last visit`}
@@ -32,7 +32,7 @@ export default function Following() {
       </header>
 
       {feed.diaries.length === 0 ? (
-        <div className="mt-12 max-w-[42rem]">
+        <div className="mt-12 max-w-2xl">
           <p className="type-body">You’re not following any diaries yet. Open one and press Follow — its new public entries will gather here.</p>
           <a href="#/diaries" className="chip chip-solid mt-6">
             Browse diaries →
@@ -52,7 +52,7 @@ export default function Following() {
             ))}
           </ul>
 
-          <ol className="mt-12 max-w-[64rem] space-y-4 md:space-y-5">
+          <ol className="mt-12 max-w-5xl space-y-4 md:space-y-5">
             {feed.items.map(({ diary, entry, isNew }) => (
               <li key={`${diary.handle}-${entry.date}`}>
                 <EntryLine

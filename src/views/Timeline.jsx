@@ -24,7 +24,7 @@ export default function Timeline() {
     <main>
       <DedicationGutter name={dedication} />
 
-      <div className="px-5 pb-32 pt-12 md:pl-[116px] md:pr-12 md:pt-16">
+      <div className="px-5 pb-32 pt-12 md:pl-29 md:pr-12 md:pt-16">
         <p className="type-meta text-vanilla/60">
           {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
         </p>

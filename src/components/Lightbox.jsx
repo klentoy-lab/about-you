@@ -44,7 +44,7 @@ export default function Lightbox({ items, index, onIndex, onClose }) {
           role="dialog"
           aria-modal="true"
           aria-label={`${open.kind === 'video' ? 'Video' : 'Photo'} ${index + 1} of ${items.length}`}
-          className="fixed inset-0 z-[90] flex flex-col bg-ink"
+          className="fixed inset-0 z-90 flex flex-col bg-ink"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

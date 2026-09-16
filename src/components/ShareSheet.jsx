@@ -90,7 +90,7 @@ export default function ShareSheet({ open, onClose, path, title, name }) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[95] flex items-end justify-center bg-ink/80 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+          className="fixed inset-0 z-95 flex items-end justify-center bg-ink/80 p-0 backdrop-blur-sm sm:items-center sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -101,7 +101,7 @@ export default function ShareSheet({ open, onClose, path, title, name }) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="share-title"
-            className="max-h-[92svh] w-full max-w-[26rem] overflow-y-auto rounded-t-[20px] bg-raised p-6 text-vanilla sm:rounded-[20px]"
+            className="max-h-[92svh] w-full max-w-104 overflow-y-auto rounded-t-[20px] bg-raised p-6 text-vanilla sm:rounded-[20px]"
             initial={{ y: 24, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 24, opacity: 0 }}
@@ -112,7 +112,7 @@ export default function ShareSheet({ open, onClose, path, title, name }) {
                 <p className="type-meta text-vanilla/60">Share</p>
                 <h2 id="share-title" className="mt-2">
                   <span className="type-meta block text-vanilla">To</span>
-                  <span className="type-display mt-1 block break-words text-[40px] text-vanilla">{name}</span>
+                  <span className="type-display mt-1 block wrap-break-word text-[40px] text-vanilla">{name}</span>
                 </h2>
                 {title !== name && <p className="type-serif mt-2 text-[22px] text-vanilla/80">{title}</p>}
               </div>
@@ -121,7 +121,7 @@ export default function ShareSheet({ open, onClose, path, title, name }) {
               </button>
             </div>
 
-            <div className="mx-auto mt-6 w-full max-w-[16rem] bg-vanilla p-3" style={{ borderRadius: 16 }}>
+            <div className="mx-auto mt-6 w-full max-w-3xs bg-vanilla p-3" style={{ borderRadius: 16 }}>
               {qr ? (
                 <img src={qr} alt={`QR code linking to ${url}`} className="block aspect-square w-full" style={{ imageRendering: 'pixelated' }} />
               ) : (

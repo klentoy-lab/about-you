@@ -24,7 +24,7 @@ export default function MoodPicker({ value, onChange }) {
               />
               <span
                 aria-hidden
-                className={`block h-[2px] w-full transition-colors duration-700 ${selected ? 'bg-mango' : 'bg-transparent'}`}
+                className={`block h-0.5 w-full transition-colors duration-700 ${selected ? 'bg-mango' : 'bg-transparent'}`}
               />
             </button>
           )

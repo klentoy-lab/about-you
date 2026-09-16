@@ -71,15 +71,15 @@ function SealedDay({ date, onDateChange }) {
   useMoodTheme(entry.mood)
   return (
     <main className="relative min-h-[calc(100svh-56px)]">
-      <MoodSpine mood={entry.mood} className="absolute inset-y-0 left-0 hidden w-[6px] md:block" />
+      <MoodSpine mood={entry.mood} className="absolute inset-y-0 left-0 hidden w-1.5 md:block" />
       <div className="md:grid md:grid-cols-[clamp(300px,32vw,460px)_minmax(0,1fr)]">
         <aside className="px-5 pt-8 md:pl-12 md:pr-8 md:pt-14">
           <DayNav date={date} today={today} isToday={date === today} onDateChange={onDateChange} />
           <DateHeadline date={date} />
-          <MoodSpine mood={entry.mood} horizontal className="mt-5 h-[4px] w-full md:hidden" />
+          <MoodSpine mood={entry.mood} horizontal className="mt-5 h-1 w-full md:hidden" />
         </aside>
-        <section className="px-5 pb-40 pt-10 md:pl-4 md:pr-12 md:pt-[8.5rem]">
-          <div className="h-40 w-full max-w-[42.5rem] bg-ink" />
+        <section className="px-5 pb-40 pt-10 md:pl-4 md:pr-12 md:pt-34">
+          <div className="h-40 w-full max-w-170 bg-ink" />
           <p className="type-meta mt-4 flex gap-6 text-vanilla">
             <span>In the Lockbin</span>
             <a href="#/lockbin" className="text-mango hover:text-vanilla">
@@ -163,21 +163,21 @@ function EntryEditor({ date, onDateChange }) {
       {/* v2: the day's mood tints the top of the page */}
       <span
         aria-hidden
-        className={`pointer-events-none absolute -top-40 left-[-10%] h-[70vmin] w-[70vmin] rounded-full blur-[110px] transition-[opacity,background-color] duration-[1600ms] ${entry.mood ? 'opacity-35' : 'opacity-0'}`}
+        className={`pointer-events-none absolute -top-40 left-[-10%] h-[70vmin] w-[70vmin] rounded-full blur-[110px] transition-[opacity,background-color] duration-1600 ${entry.mood ? 'opacity-35' : 'opacity-0'}`}
         style={{ backgroundColor: moodGlow(entry.mood) }}
       />
       {/* Desktop spine: runs the full height of the entry on its left edge */}
-      <MoodSpine mood={entry.mood} className="absolute inset-y-0 left-0 hidden w-[6px] md:block" />
+      <MoodSpine mood={entry.mood} className="absolute inset-y-0 left-0 hidden w-1.5 md:block" />
       <DropSheet show={dragging} />
 
       <div className="md:grid md:grid-cols-[clamp(300px,32vw,460px)_minmax(0,1fr)]">
         {/* ── Gutter: date, entry controls ─────────────────────── */}
-        <aside className="px-5 pt-8 md:sticky md:top-[56px] md:h-[calc(100svh-56px)] md:overflow-y-auto md:pb-10 md:pl-12 md:pr-8 md:pt-14">
+        <aside className="px-5 pt-8 md:sticky md:top-14 md:h-[calc(100svh-56px)] md:overflow-y-auto md:pb-10 md:pl-12 md:pr-8 md:pt-14">
           <DayNav date={date} today={today} isToday={isToday} onDateChange={onDateChange} />
           <DateHeadline date={date} />
 
           {/* Mobile spine: a thin bar under the date */}
-          <MoodSpine mood={entry.mood} horizontal className="mt-5 h-[4px] w-full md:hidden" />
+          <MoodSpine mood={entry.mood} horizontal className="mt-5 h-1 w-full md:hidden" />
 
           <motion.div
             className="mt-8 flex flex-wrap items-start gap-x-10 gap-y-8 md:mt-12 md:block md:space-y-10"
@@ -221,7 +221,7 @@ function EntryEditor({ date, onDateChange }) {
         {/* ── Writing surface ──────────────────────────────────── */}
         <motion.section
           aria-label="Moments"
-          className="px-5 pb-40 pt-10 md:pl-4 md:pr-12 md:pt-[8.5rem]"
+          className="px-5 pb-40 pt-10 md:pl-4 md:pr-12 md:pt-34"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: DUR.slow, delay: 0.25, ease: EASE }}
@@ -249,8 +249,8 @@ function EntryEditor({ date, onDateChange }) {
             )
           )}
 
-          <div className="max-w-[56rem]">
-          <ol className="max-w-[42.5rem]">
+          <div className="max-w-4xl">
+          <ol className="max-w-170">
             {moments.map((m, i) => {
               const eff = effectiveVisibility(entry, m)
               return (
@@ -277,7 +277,7 @@ function EntryEditor({ date, onDateChange }) {
           {/* ── Photos & video: may break out past the writing column ── */}
           {media.length > 0 && (
             <section aria-label="Photos and video" className="rule-hairline mt-14 pt-6">
-              <div className="flex min-h-[36px] max-w-[42.5rem] items-center gap-4">
+              <div className="flex min-h-9 max-w-170 items-center gap-4">
                 <span className="type-meta text-vanilla/50">{mediaSummary(media)}</span>
                 <span className="ml-auto">
                   <LayoutToggle value={entry.mediaLayout ?? 'grid'} onChange={(mediaLayout) => update({ mediaLayout })} />
@@ -298,7 +298,7 @@ function EntryEditor({ date, onDateChange }) {
           </div>
 
           {/* ── Add to this day ── */}
-          <div className="rule-hairline mt-14 max-w-[42.5rem] pt-6">
+          <div className="rule-hairline mt-14 max-w-170 pt-6">
             <p className="type-meta mb-4 text-vanilla/45">Add to this day</p>
             <div className="flex flex-wrap items-center gap-3">
               {!firstEmpty && (
@@ -352,7 +352,7 @@ function DayNav({ date, today, isToday, onDateChange }) {
           value={date}
           max={today}
           onChange={(e) => e.target.value && onDateChange(e.target.value)}
-          className="type-meta w-[3.2em] cursor-pointer bg-transparent text-transparent [color-scheme:dark] focus:outline-none focus-visible:outline-2 focus-visible:outline-mango"
+          className="type-meta w-[3.2em] cursor-pointer bg-transparent text-transparent scheme-dark focus:outline-none focus-visible:outline-2 focus-visible:outline-mango"
           aria-label="Go to a date"
         />
       </label>

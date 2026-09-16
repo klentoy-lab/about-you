@@ -62,7 +62,7 @@ export default function Calendar({ month }) {
         )}
       </div>
 
-      <div className="mt-10 grid max-w-[980px] grid-cols-7 gap-1.5 md:gap-2" role="grid" aria-label={monthLabel(ym)}>
+      <div className="mt-10 grid max-w-245 grid-cols-7 gap-1.5 md:gap-2" role="grid" aria-label={monthLabel(ym)}>
         {WEEK.map((w) => (
           <div key={w} role="columnheader" className="type-meta pb-2 text-vanilla/50">
             {w}
@@ -77,7 +77,7 @@ export default function Calendar({ month }) {
           const dayNum = Number(d.slice(8))
           const label = `${dayNum} ${name}${entry ? (entry.inLockbin ? ', in the Lockbin' : mood ? `, written, mood 0${mood}` : ', written') : ''}${isToday ? ', today' : ''}`
 
-          const base = 'relative block aspect-square min-h-[44px] overflow-hidden rounded-[8px] md:aspect-[4/3] md:rounded-[12px]'
+          const base = 'relative block aspect-square min-h-11 overflow-hidden rounded-lg md:aspect-4/3 md:rounded-xl'
           // Transparent cells: the page shows through, and a written day is marked by its mood alone.
           const state = future
             ? 'border border-vanilla/10 opacity-40'
@@ -141,7 +141,7 @@ export default function Calendar({ month }) {
       </div>
 
       {/* Legend: each mood shown in its own theme */}
-      <div className="mt-8 flex max-w-[980px] flex-wrap items-center gap-x-5 gap-y-3">
+      <div className="mt-8 flex max-w-245 flex-wrap items-center gap-x-5 gap-y-3">
         {[1, 2, 3, 4, 5].map((m) => (
           <span key={m} data-mood-scope={m} className="type-meta flex items-center gap-2 text-vanilla/60">
             <span className="relative h-5 w-7 overflow-hidden rounded-[5px] border border-vanilla/20">

@@ -62,7 +62,7 @@ export default function Settings({ onboarding = false, onDone }) {
     'mt-3 block w-full border-b border-vanilla/30 bg-transparent pb-2 font-display text-[clamp(28px,4vw,48px)] font-bold uppercase leading-none tracking-[-0.03em] text-vanilla placeholder:text-vanilla/25 focus:border-mango focus:outline-none focus-visible:outline-none'
 
   const form = (
-    <form onSubmit={submit} className="max-w-[48rem] space-y-12">
+    <form onSubmit={submit} className="max-w-3xl space-y-12">
       <label className="type-meta block text-vanilla/60">
         {onboarding ? '01 · ' : ''}Your name
         <input value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className={field} placeholder="Klent" autoFocus={onboarding} />
@@ -130,14 +130,14 @@ export default function Settings({ onboarding = false, onDone }) {
 
   if (onboarding) {
     return (
-      <main className="min-h-[100svh] bg-espresso px-5 py-14 md:px-12 md:py-20">
+      <main className="min-h-svh bg-espresso px-5 py-14 md:px-12 md:py-20">
         <p className="type-meta text-vanilla/60">Three things, then you can write</p>
         <h1 className="type-display mb-14 mt-4 text-[clamp(44px,7vw,104px)] text-vanilla">Start a diary</h1>
         {form}
 
         {/* Coming back on another device: sign in and the diary arrives — no questions to answer twice. */}
         {cloudEnabled && (
-          <section className="rule-hairline mt-20 max-w-[48rem] pt-10">
+          <section className="rule-hairline mt-20 max-w-3xl pt-10">
             <h2 className="type-display text-[clamp(28px,3.4vw,40px)] text-vanilla">Already have a diary?</h2>
             <p className="type-serif mt-2 text-[22px] text-vanilla/75">Sign in and everything you’ve written comes back.</p>
             <div className="mt-6">
@@ -170,7 +170,7 @@ export default function Settings({ onboarding = false, onDone }) {
 
 function Section({ title, note, children }) {
   return (
-    <section className="rule-hairline mt-16 max-w-[48rem] pt-10 first-of-type:mt-0 first-of-type:border-t-0 first-of-type:pt-0">
+    <section className="rule-hairline mt-16 max-w-3xl pt-10 first-of-type:mt-0 first-of-type:border-t-0 first-of-type:pt-0">
       <h2 className="type-display text-[clamp(32px,4vw,48px)] text-vanilla">{title}</h2>
       {note && <p className="type-serif mt-2 text-[22px] text-vanilla/75">{note}</p>}
       <div className="mt-8">{children}</div>
@@ -179,7 +179,7 @@ function Section({ title, note, children }) {
 }
 
 const smallField =
-  'mt-2 block w-full max-w-[20rem] border-b border-vanilla/30 bg-transparent py-2 text-[17px] text-vanilla placeholder:text-vanilla/30 focus:border-mango focus:outline-none focus-visible:outline-none'
+  'mt-2 block w-full max-w-xs border-b border-vanilla/30 bg-transparent py-2 text-[17px] text-vanilla placeholder:text-vanilla/30 focus:border-mango focus:outline-none focus-visible:outline-none'
 
 function Status({ tone, children }) {
   if (!children) return null
@@ -280,7 +280,7 @@ function AccountSettings() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className={`${smallField} max-w-[24rem]`}
+          className={`${smallField} max-w-sm`}
         />
       </label>
       <Status tone="error">{error}</Status>
@@ -379,7 +379,7 @@ function EnterCode({ email, onBack }) {
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
           placeholder="000000"
-          className={`${smallField} max-w-[10rem] text-[24px] tracking-[0.4em]`}
+          className={`${smallField} max-w-40 text-[24px] tracking-[0.4em]`}
         />
       </label>
       <Status tone="error">{error}</Status>

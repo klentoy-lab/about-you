@@ -38,7 +38,7 @@ export function MonthGroups({ entries, renderEntry, monthAction }) {
     <section key={g.month} aria-label={monthLabel(g.month)} className="md:grid md:grid-cols-[150px_minmax(0,1fr)]">
       {/* Phone: a floating frosted pill that sticks under the nav. Desktop: a quiet label in the left column. */}
       <div className="pb-4 pt-8 md:pb-0 md:pt-0">
-        <h2 className="type-meta sticky top-[68px] z-10 text-vanilla md:top-[56px] md:pt-12">
+        <h2 className="type-meta sticky top-17 z-10 text-vanilla md:top-14 md:pt-12">
           <span className="inline-flex items-center gap-3 rounded-full border border-vanilla/10 bg-ink/60 px-4 py-2 backdrop-blur-md md:block md:rounded-none md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
             {monthLabel(g.month)}
             <span className="text-vanilla/50 md:block">
@@ -89,7 +89,7 @@ export function EntryFull({ entry, href, sealed = false, unlockHref, showVisibil
       className="relative overflow-hidden rounded-[18px] border border-vanilla/10 py-9 pl-7 pr-5 md:py-10 md:pl-10 md:pr-8"
     >
       {mood && <span aria-hidden className="pointer-events-none absolute inset-0 opacity-60" style={{ background: THEME_GLOW }} />}
-      <MoodSpine mood={mood} className="absolute inset-y-0 left-0 w-[6px]" />
+      <MoodSpine mood={mood} className="absolute inset-y-0 left-0 w-1.5" />
 
       <div className="relative grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-10">
         <div>
@@ -107,7 +107,7 @@ export function EntryFull({ entry, href, sealed = false, unlockHref, showVisibil
         </div>
 
         {sealed ? (
-          <div className="max-w-[42.5rem]">
+          <div className="max-w-170">
             <div className="h-24 w-full rounded-[10px] bg-ink" />
             <p className="type-meta mt-3 flex flex-wrap gap-x-5 text-vanilla">
               <span>In the Lockbin</span>
@@ -120,10 +120,10 @@ export function EntryFull({ entry, href, sealed = false, unlockHref, showVisibil
           </div>
         ) : (
           <div className="min-w-0 space-y-8">
-            {entry.track && <SongLine track={entry.track} className="max-w-[42.5rem]" />}
+            {entry.track && <SongLine track={entry.track} className="max-w-170" />}
             {sortedMoments(entry).map((m) =>
               m.body.trim() ? (
-                <div key={m.id} className="max-w-[42.5rem]">
+                <div key={m.id} className="max-w-170">
                   <p className="type-meta flex gap-4">
                     <span className="text-mango">{formatTime(m.time)}</span>
                     {showVisibility && <span className="text-vanilla/50">{m.visibility}</span>}
@@ -133,7 +133,7 @@ export function EntryFull({ entry, href, sealed = false, unlockHref, showVisibil
               ) : null,
             )}
             {entry.media?.length > 0 && (
-              <div className="max-w-[52rem]">
+              <div className="max-w-208">
                 <MediaGallery items={entry.media} layout={entry.mediaLayout} meta={shortDate(entry.date)} />
               </div>
             )}
@@ -168,7 +168,7 @@ export function EntryLine({ entry, href, kicker }) {
     <a
       href={href}
       data-mood-scope={mood ?? undefined}
-      className="group relative block overflow-hidden rounded-[16px] border border-vanilla/10 py-7 pl-8 pr-5 transition-colors duration-700 ease-soft hover:border-vanilla/25 md:pl-10 md:pr-8"
+      className="group relative block overflow-hidden rounded-2xl border border-vanilla/10 py-7 pl-8 pr-5 transition-colors duration-700 ease-soft hover:border-vanilla/25 md:pl-10 md:pr-8"
     >
       {mood && (
         <span
@@ -177,12 +177,12 @@ export function EntryLine({ entry, href, kicker }) {
           style={{ background: THEME_GLOW }}
         />
       )}
-      <MoodSpine mood={mood} className="absolute inset-y-0 left-0 w-[6px]" />
+      <MoodSpine mood={mood} className="absolute inset-y-0 left-0 w-1.5" />
 
       {kicker && <div className="relative mb-4">{kicker}</div>}
       <div className="relative grid gap-3 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-10">
         <DateMark date={entry.date} size="text-[32px] group-hover:text-mango" />
-        <div className="max-w-[42.5rem]">
+        <div className="max-w-170">
           {first && <p className="type-serif line-clamp-2 text-[26px] leading-[1.2] text-vanilla/90">{first.body}</p>}
           {entry.track && <SongLine track={entry.track} className="mt-3" />}
           <p className="type-meta mt-3 text-vanilla/55">
@@ -213,11 +213,11 @@ export function DedicationGutter({ name, visible = true }) {
   return (
     <div
       aria-hidden
-      className={`pointer-events-none fixed bottom-0 left-0 top-[56px] z-0 hidden w-[76px] items-center justify-center overflow-hidden transition-opacity duration-1000 ease-soft md:flex ${
+      className={`pointer-events-none fixed bottom-0 left-0 top-14 z-0 hidden w-19 items-center justify-center overflow-hidden transition-opacity duration-1000 ease-soft md:flex ${
         visible ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <p className="whitespace-nowrap text-vanilla [transform:rotate(180deg)] [writing-mode:vertical-rl]">
+      <p className="whitespace-nowrap text-vanilla transform-[rotate(180deg)] [writing-mode:vertical-rl]">
         <span className="type-meta mr-4">To</span>
         <span className="type-display text-[56px]">{name}</span>
       </p>

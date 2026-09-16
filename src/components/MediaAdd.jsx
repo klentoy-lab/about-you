@@ -102,7 +102,7 @@ export function useFileDrop(ref, onFiles) {
 export function DropSheet({ show }) {
   if (!show) return null
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-0 top-[56px] z-30 flex items-center justify-center bg-ink/95">
+    <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-0 top-14 z-30 flex items-center justify-center bg-ink/95">
       <p className="text-center">
         <span className="type-meta block text-vanilla/60">Photos & video</span>
         <span className="type-display mt-3 block text-[clamp(48px,8vw,120px)] text-vanilla">Drop to add</span>

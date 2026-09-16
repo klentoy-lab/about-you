@@ -12,7 +12,7 @@ export default function Diaries() {
 
   return (
     <main className="relative px-5 pb-32 pt-12 md:px-12 md:pt-16">
-      <header className="max-w-[60rem]">
+      <header className="max-w-240">
         <p className="type-meta text-vanilla/60">
           {diaries.length} {diaries.length === 1 ? 'diary' : 'diaries'} · {totalEntries} {totalEntries === 1 ? 'entry' : 'entries'} open to read
         </p>
@@ -53,12 +53,12 @@ function DiaryCover({ diary: d }) {
 
   return (
     <article
-      className="group relative flex min-h-[26rem] flex-col overflow-hidden bg-raised pb-6 pl-10 pr-6 pt-6 transition-transform duration-700 ease-soft hover:-translate-y-1 hover:-rotate-[0.3deg] focus-within:-translate-y-1.5"
+      className="group relative flex min-h-104 flex-col overflow-hidden bg-raised pb-6 pl-10 pr-6 pt-6 transition-transform duration-700 ease-soft hover:-translate-y-1 hover:rotate-[-0.3deg] focus-within:-translate-y-1.5"
       style={{ borderRadius: '6px 18px 18px 6px' }}
     >
       {/* spine */}
-      <span aria-hidden className="absolute inset-y-0 left-0 w-[18px]" style={{ background: spine ?? 'var(--espresso-deep)' }} />
-      <span aria-hidden className="absolute inset-y-0 left-[18px] w-px bg-ink/50" />
+      <span aria-hidden className="absolute inset-y-0 left-0 w-4.5" style={{ background: spine ?? 'var(--espresso-deep)' }} />
+      <span aria-hidden className="absolute inset-y-0 left-4.5 w-px bg-ink/50" />
       {/* glow */}
       <span
         aria-hidden
@@ -67,7 +67,7 @@ function DiaryCover({ diary: d }) {
       />
 
       {/* the whole cover opens the diary; the share button sits above this link */}
-      <a href={`#/d/${d.handle}`} className="absolute inset-0 z-[1]" aria-label={`Open the diary to ${d.dedication}, by ${d.ownerName}`} />
+      <a href={`#/d/${d.handle}`} className="absolute inset-0 z-1" aria-label={`Open the diary to ${d.dedication}, by ${d.ownerName}`} />
 
       <div className="relative flex items-start justify-between gap-3">
         <p className="type-meta flex min-w-0 flex-wrap gap-x-2 pt-2 text-vanilla/80">
@@ -76,7 +76,7 @@ function DiaryCover({ diary: d }) {
             {d.count === 0 ? 'nothing public yet' : `${d.count} public ${d.count === 1 ? 'entry' : 'entries'}`}
           </span>
         </p>
-        <span className="relative z-[2]">
+        <span className="relative z-2">
           <ShareButton
             path={`d/${d.handle}`}
             name={d.dedication}
@@ -88,7 +88,7 @@ function DiaryCover({ diary: d }) {
 
       <div className="relative mt-10">
         <p className="type-meta text-vanilla">To</p>
-        <h2 className="type-display mt-2 break-words text-[clamp(44px,5.4vw,76px)] text-vanilla transition-colors duration-500 group-hover:text-mango">
+        <h2 className="type-display mt-2 wrap-break-word text-[clamp(44px,5.4vw,76px)] text-vanilla transition-colors duration-500 group-hover:text-mango">
           {d.dedication}
         </h2>
       </div>

@@ -22,7 +22,7 @@ export default function Lockbin() {
 }
 
 const inputCls =
-  'type-meta mt-2 block w-full max-w-[18rem] border-b border-vanilla/30 bg-transparent py-2 text-[18px] tracking-[0.4em] text-vanilla focus:border-mango focus:outline-none focus-visible:outline-none'
+  'type-meta mt-2 block w-full max-w-2xs border-b border-vanilla/30 bg-transparent py-2 text-[18px] tracking-[0.4em] text-vanilla focus:border-mango focus:outline-none focus-visible:outline-none'
 
 function SetPasscode() {
   const [a, setA] = useState('')
@@ -37,7 +37,7 @@ function SetPasscode() {
   }
 
   return (
-    <form onSubmit={submit} className="mt-10 max-w-[42.5rem] space-y-8">
+    <form onSubmit={submit} className="mt-10 max-w-170 space-y-8">
       <p className="type-body">Choose a passcode. It seals the Lockbin on top of your account — anything you move in here disappears from every public page.</p>
       <label className="type-meta block text-vanilla/60">
         Passcode
@@ -76,7 +76,7 @@ function Unlock() {
   }
 
   return (
-    <form onSubmit={submit} className="mt-10 max-w-[42.5rem] space-y-8">
+    <form onSubmit={submit} className="mt-10 max-w-170 space-y-8">
       <div className="h-24 w-full bg-ink" />
       <label className="type-meta block text-vanilla/60">
         Passcode
@@ -114,7 +114,7 @@ function Open({ entries }) {
       {entries.length === 0 ? (
         <p className="type-body mt-12">Nothing sealed. Move an entry here from its day.</p>
       ) : (
-        <ol className="mt-12 max-w-[64rem] space-y-6">
+        <ol className="mt-12 max-w-5xl space-y-6">
           {entries.map((e) => (
             <li key={e.id}>
               <EntryFull entry={e} href={`#/today/${e.date}`} showVisibility />

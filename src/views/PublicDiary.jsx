@@ -39,7 +39,7 @@ export default function PublicDiary({ handle }) {
         {/* the latest mood glows behind the name */}
         <span
           aria-hidden
-          className="pointer-events-none absolute -left-[10%] bottom-[-20%] h-[80vmin] w-[80vmin] rounded-full opacity-40 blur-[110px] motion-safe:animate-[drift_24s_ease-in-out_infinite]"
+          className="pointer-events-none absolute left-[-10%] bottom-[-20%] h-[80vmin] w-[80vmin] rounded-full opacity-40 blur-[110px] motion-safe:animate-[drift_24s_ease-in-out_infinite]"
           style={{ background: moodGlow(diary.latest?.mood) }}
         />
         <div className="relative">
@@ -72,7 +72,7 @@ export default function PublicDiary({ handle }) {
 
       <DedicationGutter name={diary.dedication} visible={pastMasthead} />
 
-      <div id="entries" className="scroll-mt-14 px-5 pb-32 md:pl-[116px] md:pr-12">
+      <div id="entries" className="scroll-mt-14 px-5 pb-32 md:pl-29 md:pr-12">
         <p className="type-meta rule-hairline py-6 text-vanilla/60">By {diary.ownerName}</p>
         <MonthGroups
           entries={diary.entries}
