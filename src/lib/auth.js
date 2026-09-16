@@ -75,6 +75,31 @@ export async function sendSignInCode(email) {
   return clean
 }
 
+/**
+ * Google refuses sign-in inside the built-in browsers of Facebook, Messenger, Instagram, TikTok
+ * and similar apps. Spot them so the button can explain instead of failing on Google's page.
+ */
+export const inAppBrowser = (() => {
+  if (typeof navigator === 'undefined') return false
+  return /FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|TikTok|musical_ly|Snapchat|; wv\)/i.test(navigator.userAgent)
+})()
+
+/** Sends the person to Google, which returns them here signed in. */
+export async function signInWithGoogle() {
+  if (!cloudEnabled) throw new AuthError('About You isn’t connected to a server yet')
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${window.location.origin}${window.location.pathname}`, queryParams: { prompt: 'select_account' } },
+  })
+  if (error) {
+    throw new AuthError(
+      /provider is not enabled|unsupported provider/i.test(error.message)
+        ? 'Google sign-in isn’t switched on yet'
+        : error.message,
+    )
+  }
+}
+
 /** Finishes sign-in with the six-digit code from that email. */
 export async function verifySignInCode(email, code) {
   if (!cloudEnabled) throw new AuthError('About You isn’t connected to a server yet')
