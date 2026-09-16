@@ -163,7 +163,7 @@ function EntryEditor({ date, onDateChange }) {
       {/* v2: the day's mood tints the top of the page */}
       <span
         aria-hidden
-        className={`pointer-events-none absolute -top-40 left-[-10%] h-[70vmin] w-[70vmin] rounded-full blur-[110px] transition-[opacity,background-color] duration-1600 ${entry.mood ? 'opacity-35' : 'opacity-0'}`}
+        className={`pointer-events-none absolute -top-40 left-[-10%] h-[70vmin] w-[70vmin] rounded-full blur-[110px] transition-[opacity,background-color] duration-500 ${entry.mood ? 'opacity-35' : 'opacity-0'}`}
         style={{ backgroundColor: moodGlow(entry.mood) }}
       />
       {/* Desktop spine: runs the full height of the entry on its left edge */}

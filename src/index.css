@@ -116,13 +116,30 @@
 @property --glow-amber { syntax: "<color>"; inherits: true; initial-value: rgba(255, 148, 8, 0.12); }
 @property --glow-wine { syntax: "<color>"; inherits: true; initial-value: rgba(149, 18, 44, 0.22); }
 
+/* Picking a mood should answer the tap. A short fade on desktop; on touch screens (and for anyone
+   who prefers less motion) the new colours land at once — a long fade there reads as lag, and phones
+   repaint the whole page on every frame of it. */
 :root {
   transition:
-    --mango 1.2s var(--ease-fade),
-    --espresso 1.4s var(--ease-fade),
-    --espresso-raised 1.4s var(--ease-fade),
-    --glow-amber 1.6s var(--ease-fade),
-    --glow-wine 1.6s var(--ease-fade);
+    --mango 0.35s var(--ease-fade),
+    --espresso 0.35s var(--ease-fade),
+    --espresso-raised 0.35s var(--ease-fade),
+    --glow-amber 0.35s var(--ease-fade),
+    --glow-wine 0.35s var(--ease-fade);
+}
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  :root {
+    transition: none;
+  }
+}
+/* Touch screens have no hover, so colour fades only ever show up as a lag after a tap.
+   Keep movement and fades (sheets, swatches, the record on the song card); make colour instant. */
+@media (pointer: coarse) {
+  *,
+  *::before,
+  *::after {
+    transition-property: opacity, transform, translate, scale, rotate, height, width, padding !important;
+  }
 }
 
 /* Every Tailwind transition without an explicit duration/easing now moves softly. */
@@ -160,14 +177,25 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* v2 ground: two soft ember glows that stay put while the page scrolls… */
+/* v2 ground: two soft ember glows that stay put while the page scrolls…
+   Drawn on a fixed layer behind everything rather than with background-attachment: fixed,
+   which phones repaint on every scroll and every colour change (and iOS ignores anyway). */
+html {
+  background: var(--espresso);
+}
 body {
+  background: transparent;
+  min-height: 100svh;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(1100px 680px at -5% -12%, var(--glow-amber), transparent 62%),
-    radial-gradient(900px 640px at 108% 112%, var(--glow-wine), transparent 60%),
-    var(--espresso);
-  background-attachment: fixed;
-  min-height: 100svh;
+    radial-gradient(900px 640px at 108% 112%, var(--glow-wine), transparent 60%);
 }
 
 /* …and a fine paper grain over everything, so dark surfaces feel like a page rather than a screen. */
