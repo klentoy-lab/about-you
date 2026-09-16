@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
+import CloudBanner from './components/CloudBanner.jsx'
 import Nav from './components/Nav.jsx'
 import Splash from './components/Splash.jsx'
 import { getEntry, getSettings } from './lib/store.js'
@@ -105,6 +106,7 @@ export default function App() {
       ) : (
         <>
           <Nav route={route} />
+          <CloudBanner />
           <View route={route} />
         </>
       )}

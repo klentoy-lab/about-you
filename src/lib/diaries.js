@@ -25,13 +25,15 @@ function ownDiary() {
   return { handle: s.handle, ownerName: s.ownerName, dedication: s.dedication, mine: true, entries: listEntries() }
 }
 
-/** All diaries with at least one public entry, most recently written first. */
+/**
+ * Diaries open to read, most recently written first.
+ * Your own always appears — even with nothing public yet — so it never looks like it vanished.
+ */
 export function listPublicDiaries() {
-  // Until the Supabase backend is connected, the only diary this browser knows is its own.
   return [ownDiary()]
     .filter(Boolean)
     .map(shape)
-    .filter((d) => d.count > 0)
+    .filter((d) => d.count > 0 || d.mine)
     .sort((a, b) => (b.latest?.date ?? '').localeCompare(a.latest?.date ?? ''))
 }
 

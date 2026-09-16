@@ -74,7 +74,7 @@ function DiaryCover({ diary: d }) {
         <p className="type-meta flex min-w-0 flex-wrap gap-x-2 pt-2 text-vanilla/80">
           <span className="whitespace-nowrap">{d.mine ? 'Yours' : 'Diary'} ·</span>
           <span className="whitespace-nowrap">
-            {d.count} {d.count === 1 ? 'entry' : 'entries'}
+            {d.count === 0 ? 'nothing public yet' : `${d.count} public ${d.count === 1 ? 'entry' : 'entries'}`}
           </span>
         </p>
         <span className="relative z-[2]">
@@ -94,13 +94,19 @@ function DiaryCover({ diary: d }) {
         </h2>
       </div>
 
-      {excerpt && (
+      {excerpt ? (
         <p className="type-serif relative mt-6 line-clamp-3 text-[23px] leading-[1.2] text-vanilla/85">“{excerpt}”</p>
+      ) : (
+        d.mine && (
+          <p className="type-serif relative mt-6 text-[23px] leading-[1.2] text-vanilla/70">
+            Your days are private so far. Set one to public and it appears here for everyone.
+          </p>
+        )
       )}
 
       <p className="type-meta relative mt-auto flex flex-wrap gap-x-4 gap-y-1 pt-8 text-vanilla/55">
         <span>By {d.ownerName}</span>
-        <span>Since {shortDate(d.firstDate)}</span>
+        {d.firstDate && <span>Since {shortDate(d.firstDate)}</span>}
       </p>
     </article>
   )
