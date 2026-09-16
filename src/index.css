@@ -1,0 +1,388 @@
+@import "tailwindcss";
+/* The archived v1 design is a separate app; don't scan it for classes. */
+@source not "../design-archive";
+
+/* ─────────────────────────────────────────────────────────────
+   About You design tokens (v2) — the single source of truth.
+   v1 ("Ember") is archived in design-archive/ember-v1.
+   Raw tokens live on :root; @theme maps them into Tailwind utilities (bg-espresso, text-mango…).
+   v2 keeps the v1 palette and adds warmth: a serif italic voice, ember glow, paper grain,
+   raised surfaces and pill actions.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* Colour */
+  --espresso: #2C1F14; /* primary background */
+  --ink:      #100C08; /* nav, overlays, lightbox, locked blocks */
+  --mango:    #FF9F1C; /* interactive only */
+  --amber:    #FF9408; /* gradient start */
+  --ember:    #CA3F16; /* gradient mid */
+  --wine:     #95122C; /* gradient end */
+  --vanilla:  #FFF1D6; /* text on dark, light panels */
+  --mist:     #F3F4F5; /* media frames, sticker tray */
+  --fog:      #DBE0E1; /* borders on light surfaces */
+
+  /* Mood gradients — the only place colour carries meaning */
+  --g01-stops: #F3F4F5 0%, #FF9408 100%;
+  --g02-stops: #DBE0E1 0%, #CA3F16 100%;
+  --g03-stops: #FF9408 0%, #95122C 100%;
+  --g04-stops: #FF9408 0%, #CA3F16 35%, #95122C 70%, #100C08 100%;
+  --g05-stops: #95122C 0%, #100C08 100%;
+
+  --g01: linear-gradient(180deg, var(--g01-stops));
+  --g02: linear-gradient(180deg, var(--g02-stops));
+  --g03: linear-gradient(180deg, var(--g03-stops));
+  --g04: linear-gradient(180deg, var(--g04-stops));
+  --g05: linear-gradient(180deg, var(--g05-stops));
+  /* Horizontal spine on mobile runs the same stops left-to-right */
+
+  /* Type families */
+  --font-display-stack: "Archivo", "Inter Tight", "Arial Narrow", system-ui, sans-serif;
+  --font-body-stack: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono-stack: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-serif-stack: "Instrument Serif", "Iowan Old Style", Georgia, serif; /* v2: the handwritten-letter voice */
+
+  /* v2 surfaces */
+  --espresso-raised: #3A2919;  /* covers, cards, sheets on the espresso ground */
+  --espresso-deep: #22170E;
+  --glow-amber: rgba(255, 148, 8, 0.12);
+  --glow-wine: rgba(149, 18, 44, 0.22);
+  --radius-pill: 999px;
+  --radius-card: 14px;
+
+  /* Surfaces */
+  --rule: color-mix(in srgb, var(--fog) 15%, transparent); /* hairline between moments */
+  --radius-media: 2px;
+  --radius-tray: 20px;
+
+  /* Motion — soft: long, gentle ease-out; see lib/motion.js */
+  --ease-set: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-fade: cubic-bezier(0.4, 0, 0.2, 1);
+
+  color-scheme: dark;
+}
+
+/* ── Mood themes ─────────────────────────────────────────────
+   Picking a mood re-tints the app: accent, ground, raised surfaces and glows.
+   Set by lib/theme.js as <html data-mood="1…5">, or on one element with data-mood-scope
+   (e.g. a calendar cell) to theme just that element. No mood = the default palette above.
+   Accents are chosen to keep ≥ 4.5:1 contrast on their own ground for 11px mono text. */
+:root[data-mood="1"],
+[data-mood-scope="1"] { /* mist → amber: bright, golden */
+  --mango: #FFB23F;
+  --espresso: #2F2314;
+  --espresso-raised: #3F2F1A;
+  --glow-amber: rgba(255, 178, 63, 0.22);
+  --glow-wine: rgba(255, 148, 8, 0.14);
+}
+:root[data-mood="2"],
+[data-mood-scope="2"] { /* fog → ember: cool, clay */
+  --mango: #F2804F;
+  --espresso: #2A1E19;
+  --espresso-raised: #3A2A23;
+  --glow-amber: rgba(219, 224, 225, 0.09);
+  --glow-wine: rgba(202, 63, 22, 0.26);
+}
+:root[data-mood="3"],
+[data-mood-scope="3"] { /* amber → wine: warm sunset */
+  --mango: #FF8C42;
+  --espresso: #2D1914;
+  --espresso-raised: #3E231C;
+  --glow-amber: rgba(255, 148, 8, 0.16);
+  --glow-wine: rgba(149, 18, 44, 0.3);
+}
+:root[data-mood="4"],
+[data-mood-scope="4"] { /* amber → ember → wine → ink: heavy dusk */
+  --mango: #F46445;
+  --espresso: #24130F;
+  --espresso-raised: #351D17;
+  --glow-amber: rgba(202, 63, 22, 0.24);
+  --glow-wine: rgba(149, 18, 44, 0.34);
+}
+:root[data-mood="5"],
+[data-mood-scope="5"] { /* wine → ink: deepest night */
+  --mango: #EE6079;
+  --espresso: #1C0E11;
+  --espresso-raised: #2C161B;
+  --glow-amber: rgba(149, 18, 44, 0.3);
+  --glow-wine: rgba(90, 12, 28, 0.42);
+}
+
+/* Registered so the colours can fade from one mood to the next instead of snapping. */
+@property --mango { syntax: "<color>"; inherits: true; initial-value: #FF9F1C; }
+@property --espresso { syntax: "<color>"; inherits: true; initial-value: #2C1F14; }
+@property --espresso-raised { syntax: "<color>"; inherits: true; initial-value: #3A2919; }
+@property --glow-amber { syntax: "<color>"; inherits: true; initial-value: rgba(255, 148, 8, 0.12); }
+@property --glow-wine { syntax: "<color>"; inherits: true; initial-value: rgba(149, 18, 44, 0.22); }
+
+:root {
+  transition:
+    --mango 1.2s var(--ease-fade),
+    --espresso 1.4s var(--ease-fade),
+    --espresso-raised 1.4s var(--ease-fade),
+    --glow-amber 1.6s var(--ease-fade),
+    --glow-wine 1.6s var(--ease-fade);
+}
+
+/* Every Tailwind transition without an explicit duration/easing now moves softly. */
+@theme {
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 450ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@theme inline {
+  --color-espresso: var(--espresso);
+  --color-ink: var(--ink);
+  --color-mango: var(--mango);
+  --color-amber: var(--amber);
+  --color-ember: var(--ember);
+  --color-wine: var(--wine);
+  --color-vanilla: var(--vanilla);
+  --color-mist: var(--mist);
+  --color-fog: var(--fog);
+  --color-raised: var(--espresso-raised);
+  --color-deep: var(--espresso-deep);
+
+  --font-serif: var(--font-serif-stack);
+  --font-display: var(--font-display-stack);
+  --font-body: var(--font-body-stack);
+  --font-mono: var(--font-mono-stack);
+}
+
+html,
+body {
+  background: var(--espresso);
+  color: var(--vanilla);
+  font-family: var(--font-body-stack);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* v2 ground: two soft ember glows that stay put while the page scrolls… */
+body {
+  background:
+    radial-gradient(1100px 680px at -5% -12%, var(--glow-amber), transparent 62%),
+    radial-gradient(900px 640px at 108% 112%, var(--glow-wine), transparent 60%),
+    var(--espresso);
+  background-attachment: fixed;
+  min-height: 100svh;
+}
+
+/* …and a fine paper grain over everything, so dark surfaces feel like a page rather than a screen. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    text-transform: inherit;
+  }
+}
+
+::selection {
+  background: var(--mango);
+  color: var(--ink);
+}
+
+/* Keyboard focus is always visible, always mango.
+   Layered so text fields can swap the ring for a mango underline. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--mango);
+    outline-offset: 3px;
+  }
+}
+
+/* ── Type roles ─────────────────────────────────────────────── */
+
+@utility type-display {
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 0.92;
+}
+
+@utility type-body {
+  font-family: var(--font-body-stack);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--vanilla) 90%, transparent);
+  max-width: 68ch;
+}
+
+@utility type-meta {
+  font-family: var(--font-mono-stack);
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+@utility rule-hairline {
+  border-top: 1px solid var(--rule);
+}
+
+/* v2: the serif italic voice — dedications, taglines, excerpts, notes with a song */
+@utility type-serif {
+  font-family: var(--font-serif-stack);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.08;
+  text-transform: none;
+}
+
+/* v2: pill actions. Mango outline at rest, filled on hover — easy to spot, still quiet. */
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 36px;
+  padding: 0 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--mango) 45%, transparent);
+  border-radius: var(--radius-pill);
+  color: var(--mango);
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    background-color 0.45s var(--ease-soft),
+    color 0.45s var(--ease-soft),
+    border-color 0.45s var(--ease-soft),
+    transform 0.6s var(--ease-soft);
+  &:hover {
+    background: var(--mango);
+    border-color: var(--mango);
+    color: var(--ink);
+  }
+  &:active {
+    transform: scale(0.98);
+  }
+  &:disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+}
+
+@utility chip-solid {
+  background: var(--mango);
+  border-color: var(--mango);
+  color: var(--ink);
+  &:hover {
+    background: var(--vanilla);
+    border-color: var(--vanilla);
+  }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate3d(-3%, -1.5%, 0) scale(1); }
+  50% { transform: translate3d(3%, 2.5%, 0) scale(1.05); }
+}
+
+@keyframes soft-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Hold-to-remove progress on canvas stickers */
+@keyframes hold {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Stickers may break out past the column; never let that scroll the page sideways. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* ── PDF export (print view) ─────────────────────────────────
+   views/PrintView.jsx renders A4 pages; the browser's "Save as PDF" does the rest.
+   <html data-print="dark"> keeps the app's look; data-print="paper" swaps to ink on warm paper. */
+:root:root[data-print="paper"] {
+  --vanilla: #2A1C12;
+  --espresso: #FFF8EC;
+  --espresso-raised: #F6E9D2;
+  --mango: #95122C;
+  --glow-amber: rgba(255, 148, 8, 0.1);
+  --glow-wine: rgba(149, 18, 44, 0.07);
+  --rule: rgba(44, 31, 20, 0.16);
+  color-scheme: light;
+}
+
+:root[data-print] body {
+  background: var(--espresso);
+}
+:root[data-print] body::after {
+  display: none; /* no grain on exported pages */
+}
+
+.print-page {
+  width: 210mm;
+  min-height: 297mm;
+  margin-inline: auto;
+  padding: 16mm 16mm 18mm;
+  background: var(--espresso);
+  position: relative;
+  overflow: hidden;
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: var(--espresso) !important;
+  }
+  .print-scale {
+    zoom: 1 !important; /* the on-screen preview may be shrunk to fit a phone; paper never is */
+  }
+  .print-page {
+    width: auto;
+    margin: 0;
+    break-after: page;
+    border-radius: 0 !important;
+  }
+  .print-page:last-child {
+    break-after: auto;
+  }
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
