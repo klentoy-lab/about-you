@@ -431,6 +431,21 @@ function SignedIn({ session }) {
       </p>
       <Status tone={sync.phase === 'error' ? 'error' : undefined}>{STATUS[sync.phase]}</Status>
 
+      {sync.phase === 'error' && (
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={async () => {
+            setUploading(true)
+            await uploadLocalDiary()
+            setUploading(false)
+          }}
+          className="chip chip-solid"
+        >
+          {uploading ? 'Trying again…' : 'Try again'}
+        </button>
+      )}
+
       {sync.phase === 'local-only' && (
         <button
           type="button"
