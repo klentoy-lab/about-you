@@ -73,10 +73,7 @@ export default function PublicDiary({ handle }) {
       <DedicationGutter name={diary.dedication} visible={pastMasthead} />
 
       <div id="entries" className="scroll-mt-14 px-5 pb-32 md:pl-[116px] md:pr-12">
-        <p className="type-meta rule-hairline py-6 text-vanilla/60">
-          By {diary.ownerName}
-          {diary.mine && ' · This is how visitors see your diary'}
-        </p>
+        <p className="type-meta rule-hairline py-6 text-vanilla/60">By {diary.ownerName}</p>
         <MonthGroups
           entries={diary.entries}
           renderEntry={(e) => <EntryLine entry={e} href={`#/d/${diary.handle}/${e.date}`} />}

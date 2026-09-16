@@ -52,33 +52,12 @@ export default function Tokens() {
       </Section>
 
       <Section title="Surfaces" meta="No cards · no shadows · no uniform radius">
-        <div className="grid gap-12 lg:grid-cols-2">
-          <figure>
-            <div className="bg-mist p-2" style={{ borderRadius: 'var(--radius-media)' }}>
-              <div className="aspect-[4/3] w-full" style={{ background: 'var(--g03)', borderRadius: 'var(--radius-media)' }} />
-            </div>
-            <figcaption className="type-meta mt-3 text-vanilla/70">Media frame · mist · 2px max</figcaption>
-          </figure>
-
-          <figure>
-            <div className="relative flex aspect-[4/3] flex-col justify-center gap-3 pl-6">
-              <span className="absolute inset-y-0 left-0 w-[6px]" style={{ background: 'var(--g04)' }} />
-              <p className="type-meta text-vanilla/60">Friday 11 Sept</p>
-              <div className="h-20 bg-ink" />
-              <p className="type-meta text-vanilla">In the Lockbin</p>
-            </div>
-            <figcaption className="type-meta mt-3 text-vanilla/70">Locked · solid ink, never blurred</figcaption>
-          </figure>
-        </div>
-
-        <div className="mt-14 max-w-[68ch]">
-          <p className="type-meta text-vanilla/60">2:32 PM</p>
-          <p className="type-body mt-2">A moment.</p>
-          <div className="rule-hairline mt-10 pt-10">
-            <p className="type-meta text-vanilla/60">6:05 PM</p>
-            <p className="type-body mt-2">The next one, below a hairline in fog at 15%.</p>
+        <figure className="max-w-[26rem]">
+          <div className="bg-mist p-2" style={{ borderRadius: 'var(--radius-media)' }}>
+            <div className="aspect-[4/3] w-full" style={{ background: 'var(--g03)', borderRadius: 'var(--radius-media)' }} />
           </div>
-        </div>
+          <figcaption className="type-meta mt-3 text-vanilla/70">Media frame · mist · 2px max</figcaption>
+        </figure>
       </Section>
     </main>
   )
