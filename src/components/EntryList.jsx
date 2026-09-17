@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import HeartButton from './HeartButton.jsx'
+import HeartButton, { HeartCount } from './HeartButton.jsx'
 import MediaGallery from './MediaGallery.jsx'
 import { SongLine } from './SongCard.jsx'
 import MoodSpine from './MoodSpine.jsx'
@@ -103,6 +103,8 @@ export function EntryFull({ entry, href, sealed = false, unlockHref, showVisibil
                 </a>
               )}
               {onDelete && <DeleteEntryButton date={entry.date} onDelete={onDelete} />}
+              {/* hearts only exist on public days that readers can see */}
+              {entry.visibility === 'public' && !entry.inLockbin && <HeartCount entryId={entry.id} />}
             </div>
           )}
         </div>

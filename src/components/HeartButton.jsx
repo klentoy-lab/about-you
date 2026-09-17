@@ -58,3 +58,27 @@ export default function HeartButton({ entryId, size = 'md', className = '' }) {
     </span>
   )
 }
+
+/** Read-only heart count for your own entries — how many readers left one. Public entries only. */
+export function HeartCount({ entryId, className = '' }) {
+  const { ready, count } = useHeart(entryId)
+  if (!ready) return null
+  return (
+    <span
+      className={`type-meta inline-flex min-h-8 items-center gap-2 rounded-full border border-vanilla/15 px-3 text-vanilla/80 ${className}`}
+      aria-label={`${count} ${count === 1 ? 'heart' : 'hearts'} from readers`}
+      title="Hearts from readers"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden className={`h-3.5 w-3.5 ${count ? 'text-mango' : ''}`}>
+        <path
+          d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.7 3.8 4.5 7.1 4.5c2 0 3.5 1.1 4.9 2.9 1.4-1.8 2.9-2.9 4.9-2.9 3.3 0 5.5 3.2 4.3 6.6-1.7 4.8-9.2 9.4-9.2 9.4Z"
+          fill={count ? 'currentColor' : 'none'}
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <span className="tabular-nums">{count.toLocaleString('en-PH')}</span>
+    </span>
+  )
+}
