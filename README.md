@@ -4,7 +4,7 @@ A digital diary. Every day is a page: write as many moments as you like, give th
 add photos and video, and attach the song you had on repeat. A diary is kept for someone, and that
 dedication is the first thing anyone sees.
 
-Live: https://aboutyouweb.netlify.app
+Live: https://about-you.klentdagsa21.workers.dev
 
 ## What's in it
 
@@ -34,7 +34,7 @@ Supabase provides accounts, storage and Postgres. `supabase/migrations/0001_init
 table and the row-level security that enforces privacy on the server: a private entry is never in the
 response at all. Run it once in the Supabase SQL editor.
 
-Environment variables (`.env.local` locally, Netlify → Environment variables in production):
+Environment variables (`.env.local` locally, Cloudflare → the Worker → Settings → Build → Variables and secrets in production):
 
 | Variable | What it is |
 | --- | --- |
@@ -45,7 +45,9 @@ Never put the `service_role` or secret key in this app: it bypasses row-level se
 
 ## Deploying
 
-Netlify builds from this repository on every push to `main` (see `netlify.toml`).
+Cloudflare Workers builds from this repository on every push to `main`: build command `npm run build`,
+static assets from `dist`. `public/_headers` sets long caching for the fingerprinted `/assets` files.
+The app routes with `#/…` hashes, so no rewrite rules are needed.
 
 ## Design
 
