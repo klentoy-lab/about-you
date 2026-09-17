@@ -161,8 +161,14 @@ export async function hydrate(entryRows) {
 // ── reading ──────────────────────────────────────────────────────────────────
 
 /** Everything the signed-in person can see of their own diary. */
-export async function pullMyEntries() {
-  const { data, error } = await supabase.from('entries').select('*').order('entry_date', { ascending: false })
+export async function pullMyEntries(userId) {
+  // Filter by owner: row-level security also lets every reader see other people's public entries,
+  // and those must never be mistaken for this account's own diary.
+  const { data, error } = await supabase
+    .from('entries')
+    .select('*')
+    .eq('owner_id', userId)
+    .order('entry_date', { ascending: false })
   if (error) throw error
   const entries = await hydrate(data ?? [])
   await Promise.all(entries.flatMap((e) => e.media.map((m) => cacheRemoteMedia(m))))
@@ -337,6 +343,17 @@ export async function pushProfile(settings, userId) {
     .from('account_settings')
     .upsert({ user_id: userId, default_visibility: settings.defaultVisibility })
   if (e2) throw e2
+}
+
+/** Of these entry ids, the ones the server knows belong to someone other than `userId`. */
+export async function foreignEntryIds(ids, userId) {
+  const found = new Set()
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data, error } = await supabase.from('entries').select('id, owner_id').in('id', ids.slice(i, i + 100))
+    if (error) throw error
+    ;(data ?? []).filter((r) => r.owner_id !== userId).forEach((r) => found.add(r.id))
+  }
+  return found
 }
 
 // ── following, hearts and their counts ───────────────────────────────────────

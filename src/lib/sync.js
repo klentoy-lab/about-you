@@ -9,7 +9,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { cloudEnabled, supabase } from './supabase.js'
-import { deleteEntry, fetchMyFollows, pullMyEntries, pullProfile, pushEntry, pushProfile } from './cloud.js'
+import { deleteEntry, fetchMyFollows, foreignEntryIds, pullMyEntries, pullProfile, pushEntry, pushProfile } from './cloud.js'
 import { deleteFile, getFile, putFile } from './mediaStore.js'
 import { lock } from './lockbin.js'
 import {
@@ -104,7 +104,8 @@ export async function startSync(session) {
       resetAccountData() // the blobs stay: the stash still points at them
     }
 
-    const [profile, remoteEntries] = await Promise.all([pullProfile(userId), pullMyEntries()])
+    const [profile, remoteEntries] = await Promise.all([pullProfile(userId), pullMyEntries(userId)])
+    await dropOtherPeoplesEntries(remoteEntries)
     const current = getSettings()
     const local = plan === 'keep' ? listEntries() : []
 
@@ -135,6 +136,27 @@ export async function startSync(session) {
   unsubscribe?.()
   unsubscribe = subscribe(queueChanges)
   queueChanges()
+}
+
+/**
+ * An earlier version downloaded everyone's public entries as if they were yours. Those copies are
+ * removed from this browser — and from the "written before you signed in" prompt — without asking:
+ * the originals are safe in their writers' accounts.
+ */
+async function dropOtherPeoplesEntries(remoteEntries) {
+  const mine = new Set(remoteEntries.map((e) => e.id))
+  const stash = readUnclaimed()
+  const candidates = [...listEntries(), ...(stash?.entries ?? [])].map((e) => e.id).filter((id) => !mine.has(id))
+  if (!candidates.length) return
+  const foreign = await foreignEntryIds(candidates, userId)
+  if (!foreign.size) return
+  const kept = listEntries().filter((e) => !foreign.has(e.id))
+  if (kept.length !== listEntries().length) replaceEntries(kept)
+  if (stash) {
+    const left = stash.entries.filter((e) => !foreign.has(e.id))
+    if (!left.length) clearUnclaimed()
+    else if (left.length !== stash.entries.length) stashUnclaimed({ ...stash, entries: left })
+  }
 }
 
 const pickProfile = (s) => ({ ownerName: s.ownerName, dedication: s.dedication, handle: s.handle, defaultVisibility: s.defaultVisibility })
@@ -278,7 +300,7 @@ function queueChanges(force = false) {
           settingsSnapshot = settingsKey(job.settings)
         }
       } catch (e) {
-        if (job.kind === 'entry' && belongsToAnotherAccount(e)) setAside(job.entry)
+        if (job.kind === 'entry' && belongsToAnotherAccount(e)) await setAside(job.entry)
         else firstError ??= e.message ?? 'Couldn’t save to the server' // keep going: other days may still save
       }
       set({ pending: Math.max(0, state.pending - 1) })
@@ -299,7 +321,10 @@ function queueChanges(force = false) {
 // in the "written before you signed in" prompt, where its writer can add it or throw it away.
 const belongsToAnotherAccount = (e) => e?.code === '42501' && /"entries"/.test(e.message ?? '')
 
-function setAside(entry) {
+async function setAside(entry) {
+  // A server copy of someone else's public entry isn't writing anyone could lose — just let it go.
+  const foreign = await foreignEntryIds([entry.id], userId).catch(() => new Set())
+  if (foreign.size) return removeLocalEntry(entry.date)
   const stash = readUnclaimed() ?? { entries: [], profile: {}, at: new Date().toISOString() }
   stashUnclaimed({ ...stash, entries: [...stash.entries.filter((e) => e.id !== entry.id), entry] })
   removeLocalEntry(entry.date)
