@@ -47,7 +47,7 @@ export default function PublicDiary({ handle }) {
         <div className="relative">
           <Masthead
             name={diary.dedication}
-            byline={`from ${diary.ownerName}, one day at a time`}
+            byline={`from ${diary.ownerName}`}
             meta={[
               `${diary.count} ${diary.count === 1 ? 'entry' : 'entries'}`,
               follows && countLabel(follows.followers, 'follower', 'followers'),
