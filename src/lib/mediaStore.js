@@ -48,7 +48,9 @@ const remote = new Map()
 /** Lets a stored file be shown straight from the server when this browser has no copy. */
 export function registerRemoteUrl(id, url) {
   remote.set(id, url)
-  if (!urls.has(id)) notifyUrl(id)
+  // Also when this browser already looked and found no copy (null) or is still looking:
+  // a photo shown before sync finished would otherwise stay blank until the page reloads.
+  if (typeof urls.get(id) !== 'string') notifyUrl(id)
 }
 
 const urlListeners = new Set()
