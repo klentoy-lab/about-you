@@ -4,7 +4,7 @@ A digital diary. Every day is a page: write as many moments as you like, give th
 add photos and video, and attach the song you had on repeat. A diary is kept for someone, and that
 dedication is the first thing anyone sees.
 
-Live: https://aboutyouweb.netlify.app
+Live: https://aboutyou-diary.web.app
 
 ## What's in it
 
@@ -34,7 +34,7 @@ Supabase provides accounts, storage and Postgres. `supabase/migrations/0001_init
 table and the row-level security that enforces privacy on the server: a private entry is never in the
 response at all. Run it once in the Supabase SQL editor.
 
-Environment variables (`.env.local` locally, Netlify → Environment variables in production):
+Environment variables (`.env.local` locally, `.github/workflows/firebase-hosting-*.yml` in production):
 
 | Variable | What it is |
 | --- | --- |
@@ -45,7 +45,13 @@ Never put the `service_role` or secret key in this app: it bypasses row-level se
 
 ## Deploying
 
-Netlify builds from this repository on every push to `main` (see `netlify.toml`).
+Firebase Hosting (project `aboutyou-diary`). GitHub Actions builds and deploys on every push to `main`
+(`.github/workflows/firebase-hosting-merge.yml`); pull requests get a temporary preview link.
+`firebase.json` sets the hosting rules. To deploy by hand: `npm run build` with the variables set,
+then `npx firebase-tools deploy --only hosting`.
+
+After changing the site address, add it in Supabase → Authentication → URL Configuration
+(Site URL and Redirect URLs), or sign-in will return people to the old address.
 
 ## Design
 
