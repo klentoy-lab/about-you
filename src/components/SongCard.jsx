@@ -97,21 +97,6 @@ export default function SongCard({ track, onChange, onRemove }) {
             className="block w-full border-0"
             style={{ borderRadius: 12 }}
           />
-          {/* Spotify, not this site, limits listeners who aren't logged in to a 30-second preview. */}
-          {isTrack && (
-            <p className="px-1 pt-2 text-[13px] leading-snug text-ink/60">
-              Only hearing 30 seconds?{' '}
-              <a
-                href="https://accounts.spotify.com/login"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-ink underline underline-offset-4 hover:text-wine"
-              >
-                Log in to Spotify
-              </a>{' '}
-              in this browser, then press Play again to hear the whole song.
-            </p>
-          )}
         </div>
       )}
 

@@ -1,4 +1,5 @@
 import { ShareButton } from '../components/ShareSheet.jsx'
+import HeartButton from '../components/HeartButton.jsx'
 import { shortDate } from '../lib/date.js'
 import { usePublicDiaries } from '../lib/diaries.js'
 import { moodGlow, moodGradient } from '../lib/moods.js'
@@ -95,7 +96,13 @@ function DiaryCover({ diary: d }) {
       </div>
 
       {excerpt ? (
-        <p className="type-serif relative mt-6 line-clamp-3 text-[23px] leading-[1.2] text-vanilla/85">“{excerpt}”</p>
+        <>
+          <p className="type-serif relative mt-6 line-clamp-3 text-[23px] leading-[1.2] text-vanilla/85">“{excerpt}”</p>
+          {/* the heart is for the entry quoted above; it sits over the cover's link */}
+          <div className="relative z-2 mt-4 self-start">
+            <HeartButton entryId={d.latest.id} />
+          </div>
+        </>
       ) : (
         d.mine && (
           <p className="type-serif relative mt-6 text-[23px] leading-[1.2] text-vanilla/70">
