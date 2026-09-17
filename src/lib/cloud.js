@@ -272,8 +272,11 @@ async function uploadNewMedia(entry, ownerId) {
     const blob = await getFile(m.id)
     if (!blob) continue
     const path = `${ownerId}/${entry.id}/${m.id}`
-    const { error } = await supabase.storage.from(BUCKET).upload(path, blob, { contentType: m.type || blob.type, upsert: true })
-    if (error) throw error
+    // A plain upload, not upsert: upsert also needs permission to read the file back, and the storage
+    // policy only allows that once the photo is attached to an entry — which happens after this.
+    const { error } = await supabase.storage.from(BUCKET).upload(path, blob, { contentType: m.type || blob.type })
+    const alreadyThere = error && (String(error.statusCode) === '409' || /already exists|duplicate/i.test(error.message ?? ''))
+    if (error && !alreadyThere) throw new Error(`A photo or video couldn’t upload — ${error.message}`)
     m.storagePath = path // saved back with the entry below
   }
 }
